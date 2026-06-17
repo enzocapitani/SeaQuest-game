@@ -163,7 +163,7 @@ void desenha_tela()
     {
         if (tiros[i].ativo)
         {
-            if (tiros[i].x >= 0 && tiros[i].x < LARGURA && tiros[i].y >= 0 && tiros[i].y < ALTURA)
+            if (tiros[i].x > 0 && tiros[i].x < LARGURA && tiros[i].y >= 0 && tiros[i].y < ALTURA)
             {
                 int indice_tiro = (tiros[i].y * LARGURA) + tiros[i].x;
 
@@ -206,9 +206,43 @@ void acoesPlayer()
 }
 
 /*
+    E. Emanoel: Ação do tiro + direção para esquerda e direita.
+    Mas, antes, iniciei todos os tiros inativos (ativos = 0)
+*/
+
+void iniciarTiros()
+{
+    for (int i = 0; i < MAX_TIROS; i++)
+    {
+        tiros[i].ativo = 0;
+    }
+}
+
+void acaoTiro()
+{
+    if (GetAsyncKeyState(VK_SPACE)) {
+        for (int i = 0; i < MAX_TIROS; i++) {
+            if (!tiros[i].ativo) {
+                
+                tiros[i].ativo = 1;
+                tiros[i].x = player.x + LARGURA_PLAYER;
+                tiros[i].y = player.y;
+                tiros[i].dx = (PLAYER_SPRITE == PLAYER_DIREITA) ? 1 : -1;
+
+            }
+        }
+    }
+}
+
+
+/*
     Enzo Capitani: O update() é responsável por atualizar tudo que é necessário nas acoes do jogo
     atualmente ele só verifica se o player saiu do mapa e se saiu, põe ele de volta
+
+    E. Emanoel: Vou adicionar as atualizações do tiro aqui também.
+    Faz mais sentido do que criar uma nova função pra isso :P
 */
+
 void update()
 {
     if (player.y < 1)
@@ -226,6 +260,23 @@ void update()
     if (player.x + LARGURA_PLAYER > LARGURA - 1)
     {
         player.x = LARGURA - LARGURA_PLAYER - 1;
+    }
+
+    /*
+        E. Emanoel: Atualiza os tiros na tela
+    */
+
+    for (int i = 0; i < MAX_TIROS; i++)
+    {
+        if (tiros[i].ativo)
+        {
+            tiros[i].x += (tiros[i].dx * VELOCIDADE_X) * 2;
+
+            if (tiros[i].x <= 0 || tiros[i].x >= LARGURA)
+            {
+                tiros[i].ativo = 0;
+            }
+        }
     }
 }
 
