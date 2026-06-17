@@ -156,6 +156,24 @@ void desenha_tela()
     }
 
     /*
+        E. Emanoel: Desenha os tiros na tela e verifica se eles
+    */
+
+    for (int i = 0; i < MAX_TIROS; i++)
+    {
+        if (tiros[i].ativo)
+        {
+            if (tiros[i].x >= 0 && tiros[i].x < LARGURA && tiros[i].y >= 0 && tiros[i].y < ALTURA)
+            {
+                int indice_tiro = (tiros[i].y * LARGURA) + tiros[i].x;
+
+                consoleBuffer[indice_tiro].Char.AsciiChar = TIRO_ICON;
+                consoleBuffer[indice_tiro].Attributes = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+            }
+        }
+    }
+
+    /*
         Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
     */
