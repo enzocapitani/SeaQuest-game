@@ -48,6 +48,30 @@ typedef struct
 PLAYER player;
 
 /*
+    E. Emanoel: Criação do sistema de tiros
+*/
+
+// Constantes do tiro
+
+#define TIRO_ICON 'O'
+#define MAX_TIROS 10
+
+/*
+    E. Emanoel: Struct do tiro, ainda falta adicionar countdown para cada tiro
+*/
+
+typedef struct
+{
+    int x, y;
+    int ativo;
+    int dx
+} TIRO;
+
+// Inicialização de um vetor de tiros
+
+TIRO tiros[MAX_TIROS];
+
+/*
     IMPORTANTE!!!
 */
 
