@@ -474,7 +474,7 @@ void update()
     {
         if (peixes[i].vivo)
         {
-            peixes[i].x += (peixes[i].dx * VELOCIDADE_X) * 2;
+            peixes[i].x += (peixes[i].dx * VELOCIDADE_X);
 
             if (peixes[i].x <= 0 || peixes[i].x >= LARGURA)
             {
