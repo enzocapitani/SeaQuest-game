@@ -24,13 +24,13 @@
     Enzo Capitani: Sprites iniciais do submarino, ta uma bosta
 */
 const char *PLAYER_ESQUERDA[ALTURA_PLAYER] = {
-    "   ++++ +",
-    "==+++++++",
+    "   ()%% 1",
+    "==%%%%%%)",
 };
 
 const char *PLAYER_DIREITA[ALTURA_PLAYER] = {
-    "+ ++++   ",
-    "+++++++==",
+    "1 %%()   ",
+    "(%%%%%%==",
 };
 
 const char **PLAYER_SPRITE = PLAYER_DIREITA;
@@ -41,7 +41,7 @@ const char **PLAYER_SPRITE = PLAYER_DIREITA;
 */
 typedef struct
 {
-    int x, y;
+    int x, y, score;
 } PLAYER;
 
 // Inicialização do player
@@ -105,6 +105,23 @@ COORD bufferCoord = {0, 0};
 */
 SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 
+/*
+    Enzo Capitani: esse desenha score ele desenha o score na pos largura+2 do vetor
+    unidimensional do buffer
+*/
+void desenhaScore()
+{
+    char textoScore[30];
+    sprintf(textoScore, "Score: %d", player.score);
+
+    int inicio = LARGURA + 2;
+    for(int i = 0; textoScore[i] != '\0'; i++)
+    {
+        consoleBuffer[inicio + i].Char.AsciiChar = textoScore[i];
+        consoleBuffer[inicio + i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN;
+    }
+}
+
 // Enzo Capitani: Função que desenha os caracteres no console
 void desenha_tela()
 {
@@ -151,7 +168,7 @@ void desenha_tela()
             // Essa formula aq
             int indice = (player.y + i) * LARGURA + (player.x + j);
             consoleBuffer[indice].Char.AsciiChar = PLAYER_SPRITE[i][j];
-            consoleBuffer[indice].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+            consoleBuffer[indice].Attributes = FOREGROUND_RED;
         }
     }
 
@@ -176,9 +193,13 @@ void desenha_tela()
     /*
         Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
+        Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console 
     */
+    desenhaScore();
     WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
 }
+
+
 
 /*
     Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
@@ -237,6 +258,14 @@ void acaoTiro()
     }
 }
 
+void iniciarPlayer()
+{
+    // Enzo Capitani: aqui define as posições iniciais do player
+    player.x = 20;
+    player.y = 10;
+    player.score = 0;
+}
+
 /*
     Enzo Capitani: O update() é responsável por atualizar tudo que é necessário nas acoes do jogo
     atualmente ele só verifica se o player saiu do mapa e se saiu, põe ele de volta
@@ -284,13 +313,9 @@ void update()
 
 int main()
 {
-    // Enzo Capitani: aqui define as posições iniciais do player
-    player.x = 20;
-    player.y = 10;
-
     // E. Emanoel: Inicia os tiros para não dar Bug
     // Não pode iniciar no loop, se não ele sempre teria tiros inativos
-
+    iniciarPlayer();
     iniciarTiros();
 
     // Enzo Capitani: aqui indica a saida padrão do programa, que no caso a saída é o console
