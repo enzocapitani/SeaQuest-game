@@ -415,6 +415,14 @@ void nascerPeixes()
     }
 }
 
+/*
+
+    E. Emanoel: Adicionei uma função de colisão entre os peixes e os tiros
+    ela verifica se o tiro tá ativo, se o peixe tá vivo e se eles colidiram,
+    se colidiram, o peixe morre e o tiro é desativado
+
+*/
+
 void colisaoPeixeTiro()
 {
     for (int t = 0; t < MAX_TIROS; t++)
