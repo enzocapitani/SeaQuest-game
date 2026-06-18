@@ -150,7 +150,7 @@ void desenhaScore()
     sprintf(textoScore, "Score: %d", player.score);
 
     int inicio = 5;
-    for(int i = 0; textoScore[i] != '\0'; i++)
+    for (int i = 0; textoScore[i] != '\0'; i++)
     {
         consoleBuffer[inicio + i].Char.AsciiChar = textoScore[i];
         consoleBuffer[inicio + i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN;
@@ -158,7 +158,7 @@ void desenhaScore()
 }
 
 void desenhaBarraOxigenio()
-{   
+{
     /*
         Enzo Capitani: Aqui ele aloca a quantidade de '/' que representa o nivel de oxigenio
         eu encontrei esse loop ai, nao sei como fiz mas levei em base um codigo do Claude
@@ -167,8 +167,10 @@ void desenhaBarraOxigenio()
     */
     char barras[22];
     int indiceBarras = 0;
-    for(int i = 0; i <= 1000; i+= 50){
-        if(i < player.nivelOxigenio){
+    for (int i = 0; i <= 1000; i += 50)
+    {
+        if (i < player.nivelOxigenio)
+        {
             barras[indiceBarras] = '/';
             indiceBarras++;
             continue;
@@ -215,7 +217,7 @@ void desenha_tela()
             continue;
         }
 
-        if (i > LARGURA * ALTURA - LARGURA*2 && i < (LARGURA) * (ALTURA - 1))
+        if (i > LARGURA * ALTURA - LARGURA * 2 && i < (LARGURA) * (ALTURA - 1))
         {
             consoleBuffer[i].Char.AsciiChar = CARACTERE_CHAO;
             consoleBuffer[i].Attributes = FOREGROUND_BLUE;
@@ -288,14 +290,12 @@ void desenha_tela()
     /*
         Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
-        Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console e a barra de oxigenio tb 
+        Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console e a barra de oxigenio tb
     */
     desenhaBarraOxigenio();
     desenhaScore();
     WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
 }
-
-
 
 /*
     Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
@@ -415,6 +415,30 @@ void nascerPeixes()
     }
 }
 
+void colisaoPeixeTiro()
+{
+    for (int t = 0; t < MAX_TIROS; t++)
+    {
+        if (tiros[t].ativo)
+        {
+            for (int p = 0; p < MAX_PEIXE; p++)
+            {
+                if (peixes[p].vivo)
+                {
+                    if (peixes[p].x < tiros[t].x + 1 &&
+                        peixes[p].x + PEIXE_X > tiros[t].x &&
+                        peixes[p].y < tiros[t].y + 1 &&
+                        peixes[p].y + PEIXE_Y > tiros[t].y)
+                    {
+                        peixes[p].vivo = 0;
+                        tiros[t].ativo = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
 /*
     Enzo Capitani: O update() é responsável por atualizar tudo que é necessário nas acoes do jogo
     atualmente ele só verifica se o player saiu do mapa e se saiu, põe ele de volta
@@ -431,7 +455,7 @@ void update()
     }
     if (player.y + ALTURA_PLAYER > ALTURA - 1)
     {
-        player.y = ALTURA - ALTURA_PLAYER -1;
+        player.y = ALTURA - ALTURA_PLAYER - 1;
     }
     if (player.x < 1)
     {
@@ -443,13 +467,17 @@ void update()
     }
 
     // Enzo Capitani: Aqui verifica, se o player estiver na superfice, aumenta o ocigenio, se nao diminui
-    if(player.y == 1){
+    if (player.y == 1)
+    {
         player.nivelOxigenio += 20;
-    }else{
-        player.nivelOxigenio -=5;
+    }
+    else
+    {
+        player.nivelOxigenio -= 5;
     }
 
-    if(player.nivelOxigenio < 0) player.nivelOxigenio = 0;
+    if (player.nivelOxigenio < 0)
+        player.nivelOxigenio = 0;
 
     /*
         E. Emanoel: Atualiza os tiros na tela
@@ -515,6 +543,7 @@ int main()
         acoesPlayer();
         acaoTiro();
         nascerPeixes();
+        colisaoPeixeTiro();
         update();
         desenha_tela();
         Sleep(90);
