@@ -228,7 +228,7 @@ void acaoTiro()
             {
 
                 tiros[i].ativo = 1;
-                tiros[i].x = (PLAYER_SPRITE == PLAYER_DIREITA) ? player.x + 6: player.x + 2;
+                tiros[i].x = (PLAYER_SPRITE == PLAYER_DIREITA) ? player.x + 6 : player.x + 2;
                 tiros[i].y = player.y + 1;
                 tiros[i].dx = (PLAYER_SPRITE == PLAYER_DIREITA) ? 1 : -1;
                 break;
