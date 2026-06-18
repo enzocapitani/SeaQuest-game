@@ -64,7 +64,7 @@ typedef struct
 {
     int x, y;
     int ativo;
-    int dx
+    int dx;
 } TIRO;
 
 // Inicialização de um vetor de tiros
@@ -156,14 +156,14 @@ void desenha_tela()
     }
 
     /*
-        E. Emanoel: Desenha os tiros na tela e verifica se eles
+        E. Emanoel: Desenha os tiros na tela e verifica se eles não estão fora do mapa
     */
 
     for (int i = 0; i < MAX_TIROS; i++)
     {
         if (tiros[i].ativo)
         {
-            if (tiros[i].x > 0 && tiros[i].x < LARGURA && tiros[i].y >= 0 && tiros[i].y < ALTURA)
+            if (tiros[i].x > 0 && tiros[i].x < LARGURA)
             {
                 int indice_tiro = (tiros[i].y * LARGURA) + tiros[i].x;
 
@@ -220,20 +220,22 @@ void iniciarTiros()
 
 void acaoTiro()
 {
-    if (GetAsyncKeyState(VK_SPACE)) {
-        for (int i = 0; i < MAX_TIROS; i++) {
-            if (!tiros[i].ativo) {
-                
+    if (GetAsyncKeyState(VK_SPACE))
+    {
+        for (int i = 0; i < MAX_TIROS; i++)
+        {
+            if (!tiros[i].ativo)
+            {
+
                 tiros[i].ativo = 1;
                 tiros[i].x = player.x + LARGURA_PLAYER;
-                tiros[i].y = player.y;
+                tiros[i].y = player.y + ALTURA_PLAYER;
                 tiros[i].dx = (PLAYER_SPRITE == PLAYER_DIREITA) ? 1 : -1;
-
+                break;
             }
         }
     }
 }
-
 
 /*
     Enzo Capitani: O update() é responsável por atualizar tudo que é necessário nas acoes do jogo
@@ -286,6 +288,11 @@ int main()
     player.x = 20;
     player.y = 10;
 
+    // E. Emanoel: Inicia os tiros para não dar Bug
+    // Não pode iniciar no loop, se não ele sempre teria tiros inativos
+
+    iniciarTiros();
+
     // Enzo Capitani: aqui indica a saida padrão do programa, que no caso a saída é o console
     hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -293,6 +300,7 @@ int main()
     while (1)
     {
         acoesPlayer();
+        acaoTiro();
         update();
         desenha_tela();
         Sleep(90);
