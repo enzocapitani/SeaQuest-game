@@ -408,8 +408,8 @@ void nascerPeixes()
                 peixes[i].dx = -1;
             }
 
-            // Aqui é um spawn aleatório do peixe nas colunas | 5 abaixo da superfície e 2 acima do chão
-            peixes[i].y = (rand() % (ALTURA - 2)) + 5;
+            // Aqui é um spawn aleatório do peixe nas colunas | 5 abaixo da superfície e 5 acima do chão
+            peixes[i].y = (rand() % (ALTURA - 5)) + 5;
             break;
         }
     }
