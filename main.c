@@ -15,26 +15,49 @@
 #define CARACTERE_PAREDES '|'
 #define CARACTERE_CHAO '_'
 
+
 // Constantes do player
 #define ALTURA_PLAYER 2
 #define LARGURA_PLAYER 9
 #define VELOCIDADE_X 2
 #define VELOCIDADE_Y 1
+#define TOTAL_FRAMES_JOGADOR 3
+#define VELOCIDADE_ANIMACAO 6
 
 /*
     Enzo Capitani: Sprites iniciais do submarino, ta uma bosta
 */
-const char *PLAYER_ESQUERDA[ALTURA_PLAYER] = {
-    "   ()%% 1",
-    "==%%%%%%)",
+const char *PLAYER_ESQUERDA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
+    {    
+        "  ()%% 1 ",
+        "==%%%%%=/",
+    },
+    {
+        "  ()%% 1 ",
+        "==%%%%%=-",
+    },
+    {
+        "  ()%% 1 ",
+        "==%%%%%=\\",
+    }
 };
 
-const char *PLAYER_DIREITA[ALTURA_PLAYER] = {
-    "1 %%()   ",
-    "(%%%%%%==",
+const char *PLAYER_DIREITA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
+    {    
+        " 1 %%()  ",
+        "\\=%%%%%==",
+    },
+    {    
+        " 1 %%()   ",
+        "-=%%%%%==",
+    },
+    {    
+        " 1 %%()   ",
+        "/=%%%%%==",
+    }
 };
 
-const char **PLAYER_SPRITE = PLAYER_DIREITA;
+const char *(*PLAYER_SPRITE)[ALTURA_PLAYER] = PLAYER_DIREITA;
 
 /*
     Enzo Capitani: Struct do player, ainda tem q colocar o nivel de oxigenio,
@@ -42,7 +65,7 @@ const char **PLAYER_SPRITE = PLAYER_DIREITA;
 */
 typedef struct
 {
-    int x, y, score, nivelOxigenio;
+    int x, y, score, nivelOxigenio, frameAtual;
 } PLAYER;
 
 // Inicialização do player
@@ -141,6 +164,14 @@ COORD bufferCoord = {0, 0};
 SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 
 /*
+    Henry: inicializa o relogiolobal, cada sprite é modificado de acordo com o tempo
+    do relogioGlobal, ele será incrementado em 1 a cada cilco update()
+*/
+
+int relogioGlobal = 0;
+
+
+/*
     Enzo Capitani: esse desenha score ele desenha o score na pos 5 do vetor
     unidimensional do buffer
 */
@@ -230,14 +261,30 @@ void desenha_tela()
         que é baseada em um plano bidimensional, para um vetor unidimensional, ainda nao entendi muito
         bem a formula :P, mas é isso ae
     */
+
+    int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_JOGADOR;
+
     for (int i = 0; i < ALTURA_PLAYER; i++)
     {
         for (int j = 0; j < LARGURA_PLAYER; j++)
         {
-            // Essa formula aq
-            int indice = (player.y + i) * LARGURA + (player.x + j);
-            consoleBuffer[indice].Char.AsciiChar = PLAYER_SPRITE[i][j];
-            consoleBuffer[indice].Attributes = FOREGROUND_RED;
+            /*
+                Henry: posX e posY calculam onde cada caractere do player está.
+                o if garante que essas posições estão no limite da tela
+            */
+            int posX = player.x + j;
+            int posY = player.y + i;
+            if(posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA){
+                int indice = posY * LARGURA + posX;
+
+                char caractere = PLAYER_SPRITE[frameAtualPlayer][i][j];
+                
+                if (caractere != ' '){
+                    consoleBuffer[indice].Char.AsciiChar = PLAYER_SPRITE[frameAtualPlayer][i][j];
+                    consoleBuffer[indice].Attributes = FOREGROUND_RED;
+                }
+
+            }
         }
     }
 
@@ -302,15 +349,25 @@ void desenha_tela()
 */
 void acoesPlayer()
 {
+    /*
+        Henry: Verificação para o sprite do jogador não vazar, e alteração automática do sprite quando
+        muda de direção e recomeçar o sprite
+    */
     if (GetAsyncKeyState(VK_RIGHT))
-    {
-        player.x += VELOCIDADE_X;
-        PLAYER_SPRITE = PLAYER_DIREITA;
+    {   
+        if(player.x < LARGURA - LARGURA_PLAYER) player.x += VELOCIDADE_X;
+        if(PLAYER_SPRITE != PLAYER_DIREITA){
+            PLAYER_SPRITE = PLAYER_DIREITA;
+            player.frameAtual = 0;
+        }
     }
     if (GetAsyncKeyState(VK_LEFT))
     {
-        player.x -= VELOCIDADE_X;
-        PLAYER_SPRITE = PLAYER_ESQUERDA;
+        if(player.x > 0) player.x -= VELOCIDADE_X; 
+        if(PLAYER_SPRITE != PLAYER_ESQUERDA){
+            PLAYER_SPRITE = PLAYER_ESQUERDA;
+            player.frameAtual = 0;
+        }
     }
     if (GetAsyncKeyState(VK_UP))
     {
@@ -440,6 +497,13 @@ void update()
     if (player.x + LARGURA_PLAYER > LARGURA - 1)
     {
         player.x = LARGURA - LARGURA_PLAYER - 1;
+    }
+
+    // Henry: Aqui é onde fica as mudanças relativas ao relogioGlobal
+    relogioGlobal++;
+
+    if(relogioGlobal % 3 == 0){
+        player.frameAtual += (player.frameAtual + 1) % TOTAL_FRAMES_JOGADOR;
     }
 
     // Enzo Capitani: Aqui verifica, se o player estiver na superfice, aumenta o ocigenio, se nao diminui
