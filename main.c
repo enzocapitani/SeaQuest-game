@@ -449,6 +449,8 @@ void update()
         player.nivelOxigenio -=5;
     }
 
+    if(player.nivelOxigenio < 0) player.nivelOxigenio = 0;
+
     /*
         E. Emanoel: Atualiza os tiros na tela
     */
