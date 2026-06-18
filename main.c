@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <time.h>
 
 // IMPORTANTE! o ponto 0 do eixo Y começa no topo, não em baixo
 
@@ -70,6 +71,40 @@ typedef struct
 // Inicialização de um vetor de tiros
 
 TIRO tiros[MAX_TIROS];
+
+/*
+    E. Emanoel: Criação do sistema de peixes
+*/
+
+// Constantes dos peixes
+
+#define PEIXE_Y 1
+#define PEIXE_X 3
+#define MAX_PEIXE 5
+
+// E. Emanoel: Sprites do peixe
+
+const char *PEIXE_DIREITA[PEIXE_Y] = {
+    "><>"};
+
+const char *PEIXE_ESQUERDA[PEIXE_Y] = {
+    "<><"};
+
+/*
+    E. Emanoel: Struct do peixe
+*/
+
+typedef struct
+{
+    int x, y;
+    int dx;
+    int vivo;
+    WORD cor;
+} PEIXE;
+
+// Inicialização de vetores de peixes
+
+PEIXE peixes[MAX_PEIXE];
 
 /*
     IMPORTANTE!!!
@@ -174,6 +209,32 @@ void desenha_tela()
     }
 
     /*
+        E. Emanoel: Desenha os peixes na tela e vê se já tão fora do mapa
+    */
+
+    for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
+    {
+        if (peixes[p].vivo) // Verifica se o peixe está vivo | Se ele está morto, nem executa
+        {
+            const char **PEIXE_SPRITE = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
+            for (int i = 0; i < PEIXE_Y; i++)
+            {
+                for (int j = 0; j < PEIXE_X; j++)
+                {
+
+                    if (peixes[p].x + j > 0 && peixes[p].x + j < LARGURA)
+                    {
+                        // Nesta fórmula, somamos o i e o j para que o peixe venha inteiro
+                        int indice_peixe = ((peixes[p].y + i) * LARGURA) + (peixes[p].x + j);
+                        consoleBuffer[indice_peixe].Char.AsciiChar = PEIXE_SPRITE[i][j];
+                        consoleBuffer[indice_peixe].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+                    }
+                }
+            }
+        }
+    }
+
+    /*
         Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
     */
@@ -238,6 +299,58 @@ void acaoTiro()
 }
 
 /*
+    E. Emanoel: Função pra fazer aparecer os peixes, mas, antes, inicio eles
+*/
+
+void iniciarPeixes()
+{
+    for (int i = 0; i < MAX_PEIXE; i++)
+    {
+        peixes[i].vivo = 0;
+    }
+}
+
+void nascerPeixes()
+{
+
+    // E. Emanoel:
+    // Aqui a gente adiciona uma chance de 10% do peixe nascer a cada frame
+    // Evitando que nasça um monte de peixe de uma vez
+    if (rand() % 10 != 0)
+        return;
+
+    for (int i = 0; i < MAX_PEIXE; i++)
+    {
+        if (!peixes[i].vivo)
+        {
+            peixes[i].vivo = 1;
+
+            // Sorteia um lado para o peixe nascer
+            // Se for 1, vai nascer na esquerda | se for 0, vai nascer na direita
+            int NASCE_ESQUERDA = (rand() % 2 == 0);
+
+            if (NASCE_ESQUERDA)
+            {
+                // Aqui a gente faz o peixe nascer dentro da área segura de spawn, sem ser 0, se não ele nasce e morre
+                peixes[i].x = 1 + PEIXE_X;
+                // Direção do peixe | Indo pra direita
+                peixes[i].dx = 1;
+            }
+            else
+            {
+                // Mesma coisa
+                peixes[i].x = LARGURA - PEIXE_X;
+                peixes[i].dx = -1;
+            }
+
+            // Aqui é um spawn aleatório do peixe nas colunas | 5 abaixo da superfície e 2 acima do chão
+            peixes[i].y = (rand() % (ALTURA - 2)) + 5;
+            break;
+        }
+    }
+}
+
+/*
     Enzo Capitani: O update() é responsável por atualizar tudo que é necessário nas acoes do jogo
     atualmente ele só verifica se o player saiu do mapa e se saiu, põe ele de volta
 
@@ -280,6 +393,23 @@ void update()
             }
         }
     }
+
+    /*
+        E. Emanoel: Atualiza os peixes na tela
+    */
+
+    for (int i = 0; i < MAX_PEIXE; i++)
+    {
+        if (peixes[i].vivo)
+        {
+            peixes[i].x += (peixes[i].dx * VELOCIDADE_X) * 2;
+
+            if (peixes[i].x <= 0 || peixes[i].x >= LARGURA)
+            {
+                peixes[i].vivo = 0;
+            }
+        }
+    }
 }
 
 int main()
@@ -288,10 +418,16 @@ int main()
     player.x = 20;
     player.y = 10;
 
-    // E. Emanoel: Inicia os tiros para não dar Bug
-    // Não pode iniciar no loop, se não ele sempre teria tiros inativos
+    /*
+        E. Emanoel: Inicia os tiros para não dar Bug
+        Não pode iniciar no loop, se não ele sempre teria tiros inativos
+        Adicionamos a lib <time.h> e o srand(time(NULL))
+        Garantimos que as sequencias de nascimento dos peixes não sejam iguais lá em "nascerPeixes()"
+    */
+    srand(time(NULL));
 
     iniciarTiros();
+    iniciarPeixes();
 
     // Enzo Capitani: aqui indica a saida padrão do programa, que no caso a saída é o console
     hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -301,6 +437,7 @@ int main()
     {
         acoesPlayer();
         acaoTiro();
+        nascerPeixes();
         update();
         desenha_tela();
         Sleep(90);
