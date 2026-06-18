@@ -5,12 +5,12 @@
 // IMPORTANTE! o ponto 0 do eixo Y começa no topo, não em baixo
 
 // Constantes do buffer
-#define LARGURA 125
-#define ALTURA 25
+#define LARGURA 126
+#define ALTURA 28
 
 // Constantes do mapa
 #define CARACTERE_AGUA ' '
-#define CARACTERE_SUPERFICE '='
+#define CARACTERE_SUPERFICE '~'
 #define CARACTERE_PAREDES '|'
 #define CARACTERE_CHAO '_'
 
@@ -41,7 +41,7 @@ const char **PLAYER_SPRITE = PLAYER_DIREITA;
 */
 typedef struct
 {
-    int x, y, score;
+    int x, y, score, nivelOxigenio;
 } PLAYER;
 
 // Inicialização do player
@@ -106,7 +106,7 @@ COORD bufferCoord = {0, 0};
 SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 
 /*
-    Enzo Capitani: esse desenha score ele desenha o score na pos largura+2 do vetor
+    Enzo Capitani: esse desenha score ele desenha o score na pos 5 do vetor
     unidimensional do buffer
 */
 void desenhaScore()
@@ -114,10 +114,42 @@ void desenhaScore()
     char textoScore[30];
     sprintf(textoScore, "Score: %d", player.score);
 
-    int inicio = LARGURA + 2;
+    int inicio = 5;
     for(int i = 0; textoScore[i] != '\0'; i++)
     {
         consoleBuffer[inicio + i].Char.AsciiChar = textoScore[i];
+        consoleBuffer[inicio + i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN;
+    }
+}
+
+void desenhaBarraOxigenio()
+{   
+    /*
+        Enzo Capitani: Aqui ele aloca a quantidade de '/' que representa o nivel de oxigenio
+        eu encontrei esse loop ai, nao sei como fiz mas levei em base um codigo do Claude
+        mas toda vez ele soma o i em 50 e verifica, se for maior que o nivel de oxigenio -> ' '
+        se nao -> '/'
+    */
+    char barras[22];
+    int indiceBarras = 0;
+    for(int i = 0; i <= 1000; i+= 50){
+        if(i < player.nivelOxigenio){
+            barras[indiceBarras] = '/';
+            indiceBarras++;
+            continue;
+        }
+        barras[indiceBarras] = ' ';
+        indiceBarras++;
+    }
+    barras[21] = '\0';
+
+    char barraOxigenio[51];
+    sprintf(barraOxigenio, "OXIGENIO: [%s]", barras);
+
+    int inicio = LARGURA * ALTURA - LARGURA + 40;
+    for (int i = 0; barraOxigenio[i] != '\0'; i++)
+    {
+        consoleBuffer[inicio + i].Char.AsciiChar = barraOxigenio[i];
         consoleBuffer[inicio + i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN;
     }
 }
@@ -140,13 +172,15 @@ void desenha_tela()
             consoleBuffer[i].Attributes = FOREGROUND_BLUE;
             continue;
         }
+
         if (i % LARGURA == 0 || i % LARGURA == LARGURA - 1)
         {
             consoleBuffer[i].Char.AsciiChar = CARACTERE_PAREDES;
             consoleBuffer[i].Attributes = FOREGROUND_BLUE;
             continue;
         }
-        if (i > LARGURA * ALTURA - LARGURA && i < LARGURA * ALTURA)
+
+        if (i > LARGURA * ALTURA - LARGURA*2 && i < (LARGURA) * (ALTURA - 1))
         {
             consoleBuffer[i].Char.AsciiChar = CARACTERE_CHAO;
             consoleBuffer[i].Attributes = FOREGROUND_BLUE;
@@ -193,8 +227,9 @@ void desenha_tela()
     /*
         Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
-        Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console 
+        Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console e a barra de oxigenio tb 
     */
+    desenhaBarraOxigenio();
     desenhaScore();
     WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
 }
@@ -264,6 +299,7 @@ void iniciarPlayer()
     player.x = 20;
     player.y = 10;
     player.score = 0;
+    player.nivelOxigenio = 1000;
 }
 
 /*
@@ -280,9 +316,9 @@ void update()
     {
         player.y = 1;
     }
-    if (player.y + ALTURA_PLAYER > ALTURA)
+    if (player.y + ALTURA_PLAYER > ALTURA - 1)
     {
-        player.y = ALTURA - ALTURA_PLAYER;
+        player.y = ALTURA - ALTURA_PLAYER -1;
     }
     if (player.x < 1)
     {
@@ -291,6 +327,13 @@ void update()
     if (player.x + LARGURA_PLAYER > LARGURA - 1)
     {
         player.x = LARGURA - LARGURA_PLAYER - 1;
+    }
+
+    // Enzo Capitani: Aqui verifica, se o player estiver na superfice, aumenta o ocigenio, se nao diminui
+    if(player.y == 1){
+        player.nivelOxigenio += 20;
+    }else{
+        player.nivelOxigenio -=5;
     }
 
     /*
