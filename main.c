@@ -121,7 +121,7 @@ TIRO tiros[MAX_TIROS];
 
 #define ALTURA_PEIXE 1
 #define LARGURA_PEIXE 3
-#define MAX_PEIXE 5
+#define MAX_PEIXE 15
 
 // E. Emanoel: Sprites do peixe
 
@@ -522,35 +522,58 @@ void nascerPeixes()
     // Aqui a gente adiciona uma chance de 10% do peixe nascer a cada frame
     // Evitando que nasça um monte de peixe de uma vez
     if (rand() % 10 != 0)
+    {
         return;
+    }
+
+    // E. Emanoel: define as características globais do cardume
+
+    // sorteia o tamanho do cardume (1 a 4 peixes)
+    int TAM_CARDUME = (rand() % 4) + 1;
+
+    // nasce na esquerda = 1, nasce na direita = 0
+    int NASCE_ESQUERDA = (rand() % 2 == 0);
+
+    // altura exata pros peixes nascerem dentro do mapa
+    int BASE_ALTURA = (rand() % (ALTURA - 10)) + 5;
+
+    // procura os peixes mortos pra colocar no cardume
+    int PEIXES_CARDUME = 0;
 
     for (int i = 0; i < MAX_PEIXE; i++)
     {
         if (!peixes[i].vivo)
         {
+            // revive os peixes
             peixes[i].vivo = 1;
 
-            // Sorteia um lado para o peixe nascer
-            // Se for 1, vai nascer na esquerda | se for 0, vai nascer na direita
-            int NASCE_ESQUERDA = (rand() % 2 == 0);
+            // altura base pros peixes não nascerem mortos pelo limite do mapa
+            peixes[i].y = BASE_ALTURA + (PEIXES_CARDUME * ALTURA_PEIXE);
+
+            if (peixes[i].y > ALTURA - 5)
+            {
+                peixes[i].y = ALTURA - 5;
+            }
 
             if (NASCE_ESQUERDA)
             {
                 // Aqui a gente faz o peixe nascer dentro da área segura de spawn, sem ser 0, se não ele nasce e morre
-                peixes[i].x = 1 + LARGURA_PEIXE;
-                // Direção do peixe | Indo pra direita
+                peixes[i].x = 1 + LARGURA_PEIXE - (PEIXES_CARDUME * 2);
                 peixes[i].dx = 1;
             }
             else
             {
                 // Mesma coisa
-                peixes[i].x = LARGURA - LARGURA_PEIXE;
+                peixes[i].x = LARGURA - LARGURA_PEIXE + (PEIXES_CARDUME * 2);
                 peixes[i].dx = -1;
             }
 
-            // Aqui é um spawn aleatório do peixe nas colunas | 5 abaixo da superfície e 5 acima do chão
-            peixes[i].y = (rand() % (ALTURA - 10)) + 5;
-            break;
+            PEIXES_CARDUME++;
+
+            // se já spawnou a quantidade de peixe pro cardume, para o laço
+            if (PEIXES_CARDUME >= TAM_CARDUME) {
+                break;
+            }
         }
     }
 }
