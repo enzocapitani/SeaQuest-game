@@ -93,9 +93,9 @@ PLAYER player;
 
 // Constantes do tiro
 
-#define TIRO_ICON '-'
-#define MAX_TIROS 10
-#define TIRO_VEL 3
+#define TIRO_ICON '='
+#define MAX_TIROS 5
+#define TIRO_VEL 10
 
 /*
     E. Emanoel: Struct do tiro, ainda falta adicionar countdown para cada tiro
@@ -516,7 +516,8 @@ void nascerPeixes()
 
     E. Emanoel: Adicionei uma função de colisão entre os peixes e os tiros
     ela verifica se o tiro tá ativo, se o peixe tá vivo e se eles colidiram,
-    se colidiram, o peixe morre e o tiro é desativado
+    se colidiram, o peixe morre e o tiro é desativado 
+    E. Emanoel: Agora a função de atualizar os tiros está aqui também
 
 */
 
@@ -526,33 +527,40 @@ void colisaoPeixeTiro()
     {
         if (tiros[t].ativo)
         {
-            // calcula qual será a trajetória do tiro
-            int x_atual = tiros[t].x;
-            int x_futuro = (tiros[t].dx * TIRO_VEL) + tiros[t].x;
-
-            // define o começo e o fim da linha do tiro
-            int min_x = (tiros[t].dx == 1) ? x_atual : x_futuro;
-            int max_x = (tiros[t].dx == 1) ? x_futuro : x_atual;
-
-            for (int p = 0; p < MAX_PEIXE; p++)
+            // a linha de tiro esta aqui agora
+            for (int steps = 0; steps < TIRO_VEL; steps++)
             {
-                if (peixes[p].vivo)
-                {
-                    // verifica se o peixe tá na altura do tiro
-                    if (peixes[p].y < tiros[t].y + 1 &&
-                        peixes[p].y + ALTURA_PEIXE > tiros[t].y)
-                    {
-                        // verifica se o peixe ta em na linha do tiroteio
-                        if (peixes[p].x < max_x + 1 &&
-                            peixes[p].x + LARGURA_PEIXE > min_x)
-                        {
-                            peixes[p].vivo = 0;
-                            tiros[t].ativo = 0;
+                tiros[t].x += tiros[t].dx; // anda uma casa na direção do tiro
 
+                //  check de colisao entre peixe e a linha do tiro
+                for (int p = 0; p < MAX_PEIXE; p++)
+                {
+                    if (peixes[p].vivo)
+                    {
+                        // verifica se o peixe tá na altura do tiro
+                        if (peixes[p].y < tiros[t].y + 1 && peixes[p].y + ALTURA_PEIXE > tiros[t].y &&
+                            peixes[p].x < tiros[t].x + 1 && peixes[p].x + LARGURA_PEIXE > tiros[t].x)
+                        {
+                            peixes[p].vivo = 0; // peixem morto
+                            tiros[t].ativo = 0; // tiro some
                             // se bateu em um peixe, já era, reinicia
                             break;
                         }
                     }
+                }
+
+                // Função de atualizar os tiros está aqui, também
+                // Verifica se os tiros sairam do mapa
+                // Essa função estava lá em update, mas apaguei (E. Emanoel)
+
+                if (!tiros[t].ativo)
+                {
+                    break;
+                }
+                if (tiros[t].x <= 0 || tiros[t].x >= LARGURA)
+                {
+                    tiros[t].ativo = 0;
+                    break;
                 }
             }
         }
@@ -629,24 +637,6 @@ void update()
         player.nivelOxigenio = 0;
 
     /*
-        E. Emanoel: Atualiza os tiros na tela
-    */
-
-    for (int i = 0; i < MAX_TIROS; i++)
-    {
-        if (tiros[i].ativo)
-        {
-            tiros[i].x += (tiros[i].dx * TIRO_VEL);
-
-            if (tiros[i].x <= 0 || tiros[i].x >= LARGURA)
-            {
-                tiros[i].ativo = 0;
-                break;
-            }
-        }
-    }
-
-    /*
         E. Emanoel: Atualiza os peixes na tela
     */
 
@@ -662,6 +652,11 @@ void update()
             }
         }
     }
+
+    /*
+        E. Emanoel: Agora a colisaoPeixeTiro() também atualiza os tiros na tela (achei melhor assim) 
+    */
+
     colisaoPeixeTiro();
     colisaoPlayerPeixe();
 }
