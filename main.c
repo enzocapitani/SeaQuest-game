@@ -412,6 +412,7 @@ void desenha_tela()
                     int posY = peixes[p].y + i;
 
                     if(posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA){
+                        // Henry: verifica se o peixe está indo pra direita ou esquerda, e seu respectivo 
                         char caractere = (peixes[p].dx == 1) ? PEIXE_DIREITA[frameAtualPeixe][i][j] : PEIXE_ESQUERDA[frameAtualPeixe][i][j]; 
                         
                         int indice_peixe = (posY * LARGURA) + posX;
@@ -421,6 +422,7 @@ void desenha_tela()
                 }
             }
         }
+        // Henry: esse if verifica se o peixe morreu pela extremidade do mapa, faz com que o sprite de morte apenas apareça quando o peixe morre pelo jogador
         else if(!(peixes[p].x <= 0 || peixes[p].x >= LARGURA)){
             consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Char.AsciiChar = 'X';
             consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;             
