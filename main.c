@@ -15,7 +15,6 @@
 #define CARACTERE_PAREDES '|'
 #define CARACTERE_CHAO '_'
 
-
 // Constantes do player
 #define ALTURA_PLAYER 2
 #define LARGURA_PLAYER 9
@@ -28,7 +27,7 @@
     Enzo Capitani: Sprites iniciais do submarino, ta uma bosta
 */
 const char *PLAYER_ESQUERDA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
-    {    
+    {
         "  ()%% 1 ",
         "==%%%%%=/",
     },
@@ -39,23 +38,21 @@ const char *PLAYER_ESQUERDA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
     {
         "  ()%% 1 ",
         "==%%%%%=\\",
-    }
-};
+    }};
 
 const char *PLAYER_DIREITA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
-    {    
+    {
         " 1 %%()  ",
         "\\=%%%%%==",
     },
-    {    
+    {
         " 1 %%()  ",
         "-=%%%%%==",
     },
-    {    
+    {
         " 1 %%()  ",
         "/=%%%%%==",
-    }
-};
+    }};
 
 const char *(*PLAYER_SPRITE)[ALTURA_PLAYER] = PLAYER_DIREITA;
 
@@ -78,8 +75,9 @@ PLAYER player;
 
 // Constantes do tiro
 
-#define TIRO_ICON 'O'
+#define TIRO_ICON '~'
 #define MAX_TIROS 10
+#define TIRO_VEL 3
 
 /*
     E. Emanoel: Struct do tiro, ainda falta adicionar countdown para cada tiro
@@ -171,7 +169,6 @@ SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 
 int relogioGlobal = 0;
 
-
 /*
     Enzo Capitani: esse desenha score ele desenha o score na pos 5 do vetor
     unidimensional do buffer
@@ -195,9 +192,10 @@ void desenhaVida()
     sprintf(textoVida, "Vida: %d", player.vida);
 
     int inicio = LARGURA - 15;
-    for(int i = 0; textoVida[i] != '\0'; i++){
+    for (int i = 0; textoVida[i] != '\0'; i++)
+    {
         consoleBuffer[inicio + i].Char.AsciiChar = textoVida[i];
-        consoleBuffer[inicio+i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN;
+        consoleBuffer[inicio + i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN;
     }
 }
 
@@ -241,7 +239,8 @@ void desenhaBarraOxigenio()
         um ele cria uma mistura, as cores são em hexadecimal
         Enzo Capitani: Foi adicionada a criação da "caixa" do mapa
     */
-void desenhaMapa(){
+void desenhaMapa()
+{
     for (int i = 0; i < LARGURA * ALTURA; i++)
     {
         if (i > LARGURA && i < LARGURA * 2)
@@ -273,72 +272,72 @@ void desenhaMapa(){
 void desenha_tela()
 {
     desenhaMapa();
-    
+
     /*
     Enzo Capitani: Nesse loop, calcula a posição do player e transfere a posição dele,
     que é baseada em um plano bidimensional, para um vetor unidimensional, ainda nao entendi muito
     bem a formula :P, mas é isso ae
     */
-   
-   int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_JOGADOR;
-   
-   for (int i = 0; i < ALTURA_PLAYER; i++)
-   {
-       for (int j = 0; j < LARGURA_PLAYER; j++)
-       {
-           /*
-           Henry: posX e posY calculam onde cada caractere do player está.
-           o if garante que essas posições estão no limite da tela
-           */
-          int posX = player.x + j;
-          int posY = player.y + i;
-          if(posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA){
-              int indice = posY * LARGURA + posX;
-              
+
+    int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_JOGADOR;
+
+    for (int i = 0; i < ALTURA_PLAYER; i++)
+    {
+        for (int j = 0; j < LARGURA_PLAYER; j++)
+        {
+            /*
+            Henry: posX e posY calculam onde cada caractere do player está.
+            o if garante que essas posições estão no limite da tela
+            */
+            int posX = player.x + j;
+            int posY = player.y + i;
+            if (posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA)
+            {
+                int indice = posY * LARGURA + posX;
+
                 char caractere = PLAYER_SPRITE[frameAtualPlayer][i][j];
-                
-                if (caractere != ' '){
+
+                if (caractere != ' ')
+                {
                     consoleBuffer[indice].Char.AsciiChar = PLAYER_SPRITE[frameAtualPlayer][i][j];
                     consoleBuffer[indice].Attributes = FOREGROUND_RED;
                 }
-                
             }
         }
     }
-    
+
     /*
         E. Emanoel: Desenha os tiros na tela e verifica se eles não estão fora do mapa
         */
 
-       for (int i = 0; i < MAX_TIROS; i++)
-       {
+    for (int i = 0; i < MAX_TIROS; i++)
+    {
         if (tiros[i].ativo)
         {
             if (tiros[i].x > 0 && tiros[i].x < LARGURA)
             {
                 int indice_tiro = (tiros[i].y * LARGURA) + tiros[i].x;
-                
+
                 consoleBuffer[indice_tiro].Char.AsciiChar = TIRO_ICON;
                 consoleBuffer[indice_tiro].Attributes = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
             }
         }
     }
-    
+
     /*
     E. Emanoel: Desenha os peixes na tela e vê se já tão fora do mapa
     */
-   
-   for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
-   {
+
+    for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
+    {
         if (peixes[p].vivo) // Verifica se o peixe está vivo | Se ele está morto, nem executa
         {
             const char **PEIXE_SPRITE = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
-            for (int i = 0; i < ALTURA_PEIXE
-            ; i++)
+            for (int i = 0; i < ALTURA_PEIXE; i++)
             {
                 for (int j = 0; j < LARGURA_PEIXE; j++)
                 {
-                    
+
                     if (peixes[p].x + j > 0 && peixes[p].x + j < LARGURA)
                     {
                         // Nesta fórmula, somamos o i e o j para que o peixe venha inteiro
@@ -350,39 +349,43 @@ void desenha_tela()
             }
         }
     }
-    
+
     /*
     Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
         Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console e a barra de oxigenio tb
         */
-       desenhaBarraOxigenio();
-       desenhaVida();
-       desenhaScore();
-       WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
-    }
-    
-    /*
-    Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
-    */
-   void acoesPlayer()
+    desenhaBarraOxigenio();
+    desenhaVida();
+    desenhaScore();
+    WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
+}
+
+/*
+Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
+*/
+void acoesPlayer()
 {
     /*
         Henry: Verificação para o sprite do jogador não vazar, e alteração automática do sprite quando
         muda de direção e recomeçar o sprite
     */
     if (GetAsyncKeyState(VK_RIGHT))
-    {   
-        if(player.x < LARGURA - LARGURA_PLAYER) player.x += VELOCIDADE_X;
-        if(PLAYER_SPRITE != PLAYER_DIREITA){
+    {
+        if (player.x < LARGURA - LARGURA_PLAYER)
+            player.x += VELOCIDADE_X;
+        if (PLAYER_SPRITE != PLAYER_DIREITA)
+        {
             PLAYER_SPRITE = PLAYER_DIREITA;
             player.frameAtual = 0;
         }
     }
     if (GetAsyncKeyState(VK_LEFT))
     {
-        if(player.x > 0) player.x -= VELOCIDADE_X; 
-        if(PLAYER_SPRITE != PLAYER_ESQUERDA){
+        if (player.x > 0)
+            player.x -= VELOCIDADE_X;
+        if (PLAYER_SPRITE != PLAYER_ESQUERDA)
+        {
             PLAYER_SPRITE = PLAYER_ESQUERDA;
             player.frameAtual = 0;
         }
@@ -395,7 +398,6 @@ void desenha_tela()
     {
         player.y += VELOCIDADE_Y;
     }
-
 }
 
 /*
@@ -433,7 +435,7 @@ void acaoTiro()
 void iniciarPlayer()
 {
     // Enzo Capitani: aqui define as posições iniciais do player
-    player.x = 63-LARGURA_PLAYER;
+    player.x = 63 - LARGURA_PLAYER;
     player.y = 14;
     player.score = 0;
     player.nivelOxigenio = 1000;
@@ -506,25 +508,38 @@ void colisaoPeixeTiro()
     {
         if (tiros[t].ativo)
         {
+            // calcula qual será a trajetória do tiro
+            int x_atual = tiros[t].x;
+            int x_futuro = tiros[t].x + (tiros[t].dx * TIRO_VEL);
+
+            // define o começo e o fim da linha do tiro
+            int min_x = (tiros[t].dx == 1) ? x_atual : x_futuro;
+            int max_x = (tiros[t].dx == 1) ? x_futuro : x_atual;
+
             for (int p = 0; p < MAX_PEIXE; p++)
             {
                 if (peixes[p].vivo)
                 {
-                    if (peixes[p].x < tiros[t].x + 1 &&
-                        peixes[p].x + LARGURA_PEIXE > tiros[t].x &&
-                        peixes[p].y < tiros[t].y + 1 &&
-                        peixes[p].y + ALTURA_PEIXE
-                     > tiros[t].y)
+                    // verifica se o peixe tá na altura do tiro
+                    if (peixes[p].y < tiros[t].y + 1 &&
+                        peixes[p].y + ALTURA_PEIXE > tiros[t].y)
                     {
-                        peixes[p].vivo = 0;
-                        tiros[t].ativo = 0;
+                        // verifica se o peixe ta em na linha do tiroteio
+                        if (peixes[p].x < max_x + 1 &&
+                            peixes[p].x + LARGURA_PEIXE > min_x)
+                        {
+                            peixes[p].vivo = 0;
+                            tiros[t].ativo = 0;
+
+                            // se bateu em um peixe, já era, reinicia
+                            break;
+                        }
                     }
                 }
             }
         }
     }
 }
-
 
 /*
 
@@ -534,14 +549,12 @@ void colisaoPeixeTiro()
 
 */
 
-void colisaoPlayerPeixe(){
-    for(int i = 0; i < MAX_PEIXE; i++)
+void colisaoPlayerPeixe()
+{
+    for (int i = 0; i < MAX_PEIXE; i++)
     {
-        if(player.x + LARGURA_PLAYER > peixes[i].x
-        && player.x < peixes[i].x + LARGURA_PEIXE
-        && player.y + ALTURA_PLAYER > peixes[i].y
-        && player.y < peixes[i].y + ALTURA_PEIXE
-        ){
+        if (player.x + LARGURA_PLAYER > peixes[i].x && player.x < peixes[i].x + LARGURA_PEIXE && player.y + ALTURA_PLAYER > peixes[i].y && player.y < peixes[i].y + ALTURA_PEIXE)
+        {
             peixes[i].vivo = 0;
             peixes[i].x = 0;
             player.vida--;
@@ -579,7 +592,8 @@ void update()
     // Henry: Aqui é onde fica as mudanças relativas ao relogioGlobal
     relogioGlobal++;
 
-    if(relogioGlobal % 3 == 0){
+    if (relogioGlobal % 3 == 0)
+    {
         player.frameAtual += (player.frameAtual + 1) % TOTAL_FRAMES_JOGADOR;
     }
 
@@ -604,7 +618,7 @@ void update()
     {
         if (tiros[i].ativo)
         {
-            tiros[i].x += (tiros[i].dx * VELOCIDADE_X) * 2;
+            tiros[i].x += (tiros[i].dx * TIRO_VEL);
 
             if (tiros[i].x <= 0 || tiros[i].x >= LARGURA)
             {
@@ -621,7 +635,7 @@ void update()
     {
         if (peixes[i].vivo)
         {
-            peixes[i].x += (peixes[i].dx * VELOCIDADE_X);
+            peixes[i].x += peixes[i].dx;
 
             if (peixes[i].x <= 0 || peixes[i].x >= LARGURA)
             {
@@ -658,7 +672,7 @@ int main()
         acoesPlayer();
         acaoTiro();
         nascerPeixes();
-        
+
         update();
         desenha_tela();
         Sleep(90);
