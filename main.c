@@ -20,12 +20,35 @@ const wchar_t *MRBX_QUESTLOGO[ALTURA_LOGO] = {
     L"█   █ █   █ ████  █   █     ██ █  ███  █████ ████    █  ",
 };
 
+//CONSTANTES LOGO GAME OVER!
+
+#define ALTURA_GAMEOVER 8
+#define LARGURA_GAMEOVER 100
+#define GAME_OVER_X 13
+#define GAME_OVER_Y 3
+
+const wchar_t *GAMEOVER[] = {
+
+    L" .d8888b.         d8888 888b     d888 8888888888      .d88888b.  888     888 8888888888 8888888b. ",  
+    L"d88P  Y88b       d88888 8888b   d8888 888            d88P   Y88b 888     888 888        888   Y88b", 
+    L"888    888      d88P888 88888b.d88888 888            888     888 888     888 888        888    888",
+    L"888            d88P 888 888Y88888P888 8888888        888     888 Y88b   d88P 8888888    888   d88P",
+    L"888  88888    d88P  888 888 Y888P 888 888            888     888  Y88b d88P  888        8888888P  ",  
+    L"888    888   d88P   888 888  Y8P  888 888            888     888   Y88o88P   888        888 T88b  ",
+    L"Y88b  d88P  d8888888888 888       888 888            Y88b. .d88P    Y888P    888        888  T88b ",
+    L" Y88888P8  d88P     888 888       888 8888888888      Y8888888P      Y8P     8888888888 888   T88b",
+                                                                                                                                                                               
+};
+
+
+
 // Constantes do buffer
 #define LARGURA 126
 #define ALTURA 28
 
 #define TELA_INICIAL 0
 #define TELA_JOGO 1
+#define TELA_GAMEOVER 2
 
 // Constantes do mapa
 #define CARACTERE_AGUA ' '
@@ -188,7 +211,38 @@ SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 
 int relogioGlobal = 0;
 
-int tela_atual = TELA_INICIAL;
+int tela_atual = 0;
+
+void desenhaTelaGameOver(){
+
+    for (int i = 0; i < LARGURA * ALTURA; ++i)
+    {
+        consoleBuffer[i].Char.AsciiChar = ' ';
+        consoleBuffer[i].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+    }
+
+    for (int i = 0; i < ALTURA_GAMEOVER; ++i)
+    {
+        for (int j = 0; j < LARGURA_GAMEOVER; ++j)
+        {
+            int indice = (GAME_OVER_Y + i) * LARGURA + (GAME_OVER_X + j);
+            consoleBuffer[indice].Char.AsciiChar = GAMEOVER[i][j];
+            consoleBuffer[indice].Attributes = FOREGROUND_RED;
+        }
+    }
+
+    char textoIniciar[35];
+    sprintf(textoIniciar, "PRESSIONE SPACE PARA VOLTAR AO MENU");
+
+    int inicio = (ALTURA_GAMEOVER + GAME_OVER_Y + 1) * (LARGURA) + 35;
+    for (int i = 0; textoIniciar[i] != '\0'; i++)
+    {
+        consoleBuffer[inicio + i].Char.AsciiChar = textoIniciar[i];
+        consoleBuffer[inicio + i].Attributes = FOREGROUND_BLUE;
+    }
+
+    WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
+}
 
 void desenhaTelaInicial()
 {
@@ -413,12 +467,11 @@ void desenha_tela()
     WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
 }
 
-void acoesTelaInicial()
+void acoesTela(int tela)
 {
-
     if (GetAsyncKeyState(VK_SPACE))
     {
-        tela_atual = TELA_JOGO;
+        tela_atual = tela;
     }
 }
 
@@ -699,10 +752,12 @@ void update()
         player.nivelOxigenio -= 5;
     }
 
-    if (player.nivelOxigenio < 0)
-        player.nivelOxigenio = 0;
+    if (player.nivelOxigenio < 0 || player.vida < 1)
+        tela_atual = TELA_GAMEOVER;
 
-    /*
+    if(player.nivelOxigenio > 1000) player.nivelOxigenio = 1000;
+
+   /*
         E. Emanoel: Atualiza os peixes na tela
     */
 
@@ -752,7 +807,8 @@ int main()
         if (tela_atual == 0)
         {
             desenhaTelaInicial();
-            acoesTelaInicial();
+            acoesTela(TELA_JOGO);
+            Sleep(200);
         }
 
         if (tela_atual == 1)
@@ -763,6 +819,13 @@ int main()
             update();
             desenha_tela();
             Sleep(90);
+        }
+
+        if(tela_atual == 2){
+            acoesTela(TELA_INICIAL);
+            desenhaTelaGameOver();
+            iniciarPlayer();
+            Sleep(200);
         }
     }
 
