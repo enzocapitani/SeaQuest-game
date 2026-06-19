@@ -48,11 +48,11 @@ const char *PLAYER_DIREITA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
         "\\=%%%%%==",
     },
     {    
-        " 1 %%()   ",
+        " 1 %%()  ",
         "-=%%%%%==",
     },
     {    
-        " 1 %%()   ",
+        " 1 %%()  ",
         "/=%%%%%==",
     }
 };
@@ -66,6 +66,7 @@ const char *(*PLAYER_SPRITE)[ALTURA_PLAYER] = PLAYER_DIREITA;
 typedef struct
 {
     int x, y, score, nivelOxigenio, frameAtual;
+    int vida;
 } PLAYER;
 
 // Inicialização do player
@@ -101,16 +102,16 @@ TIRO tiros[MAX_TIROS];
 
 // Constantes dos peixes
 
-#define PEIXE_Y 1
-#define PEIXE_X 3
+#define ALTURA_PEIXE 1
+#define LARGURA_PEIXE 3
 #define MAX_PEIXE 5
 
 // E. Emanoel: Sprites do peixe
 
-const char *PEIXE_DIREITA[PEIXE_Y] = {
+const char *PEIXE_DIREITA[ALTURA_PEIXE] = {
     "><>"};
 
-const char *PEIXE_ESQUERDA[PEIXE_Y] = {
+const char *PEIXE_ESQUERDA[ALTURA_PEIXE] = {
     "<><"};
 
 /*
@@ -188,6 +189,18 @@ void desenhaScore()
     }
 }
 
+void desenhaVida()
+{
+    char textoVida[15];
+    sprintf(textoVida, "Vida: %d", player.vida);
+
+    int inicio = LARGURA - 15;
+    for(int i = 0; textoVida[i] != '\0'; i++){
+        consoleBuffer[inicio + i].Char.AsciiChar = textoVida[i];
+        consoleBuffer[inicio+i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN;
+    }
+}
+
 void desenhaBarraOxigenio()
 {
     /*
@@ -222,16 +235,13 @@ void desenhaBarraOxigenio()
     }
 }
 
-// Enzo Capitani: Função que desenha os caracteres no console
-void desenha_tela()
-{
-
-    /*
+/*
         Enzo Capiani: Esse loop preenche os caracteres da agua e define as cores,
         esse atributte tem q deixar as 3 cores primarias (eu acho que sao), se remover
         um ele cria uma mistura, as cores são em hexadecimal
         Enzo Capitani: Foi adicionada a criação da "caixa" do mapa
     */
+void desenhaMapa(){
     for (int i = 0; i < LARGURA * ALTURA; i++)
     {
         if (i > LARGURA && i < LARGURA * 2)
@@ -257,71 +267,78 @@ void desenha_tela()
         consoleBuffer[i].Char.AsciiChar = CARACTERE_AGUA;
         consoleBuffer[i].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
     }
+}
 
+// Enzo Capitani: Função que desenha os caracteres no console
+void desenha_tela()
+{
+    desenhaMapa();
+    
     /*
-        Enzo Capitani: Nesse loop, calcula a posição do player e transfere a posição dele,
-        que é baseada em um plano bidimensional, para um vetor unidimensional, ainda nao entendi muito
-        bem a formula :P, mas é isso ae
+    Enzo Capitani: Nesse loop, calcula a posição do player e transfere a posição dele,
+    que é baseada em um plano bidimensional, para um vetor unidimensional, ainda nao entendi muito
+    bem a formula :P, mas é isso ae
     */
-
-    int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_JOGADOR;
-
-    for (int i = 0; i < ALTURA_PLAYER; i++)
-    {
-        for (int j = 0; j < LARGURA_PLAYER; j++)
-        {
-            /*
-                Henry: posX e posY calculam onde cada caractere do player está.
-                o if garante que essas posições estão no limite da tela
-            */
-            int posX = player.x + j;
-            int posY = player.y + i;
-            if(posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA){
-                int indice = posY * LARGURA + posX;
-
+   
+   int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_JOGADOR;
+   
+   for (int i = 0; i < ALTURA_PLAYER; i++)
+   {
+       for (int j = 0; j < LARGURA_PLAYER; j++)
+       {
+           /*
+           Henry: posX e posY calculam onde cada caractere do player está.
+           o if garante que essas posições estão no limite da tela
+           */
+          int posX = player.x + j;
+          int posY = player.y + i;
+          if(posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA){
+              int indice = posY * LARGURA + posX;
+              
                 char caractere = PLAYER_SPRITE[frameAtualPlayer][i][j];
                 
                 if (caractere != ' '){
                     consoleBuffer[indice].Char.AsciiChar = PLAYER_SPRITE[frameAtualPlayer][i][j];
                     consoleBuffer[indice].Attributes = FOREGROUND_RED;
                 }
-
+                
             }
         }
     }
-
+    
     /*
         E. Emanoel: Desenha os tiros na tela e verifica se eles não estão fora do mapa
-    */
+        */
 
-    for (int i = 0; i < MAX_TIROS; i++)
-    {
+       for (int i = 0; i < MAX_TIROS; i++)
+       {
         if (tiros[i].ativo)
         {
             if (tiros[i].x > 0 && tiros[i].x < LARGURA)
             {
                 int indice_tiro = (tiros[i].y * LARGURA) + tiros[i].x;
-
+                
                 consoleBuffer[indice_tiro].Char.AsciiChar = TIRO_ICON;
                 consoleBuffer[indice_tiro].Attributes = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
             }
         }
     }
-
+    
     /*
-        E. Emanoel: Desenha os peixes na tela e vê se já tão fora do mapa
+    E. Emanoel: Desenha os peixes na tela e vê se já tão fora do mapa
     */
-
-    for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
-    {
+   
+   for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
+   {
         if (peixes[p].vivo) // Verifica se o peixe está vivo | Se ele está morto, nem executa
         {
             const char **PEIXE_SPRITE = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
-            for (int i = 0; i < PEIXE_Y; i++)
+            for (int i = 0; i < ALTURA_PEIXE
+            ; i++)
             {
-                for (int j = 0; j < PEIXE_X; j++)
+                for (int j = 0; j < LARGURA_PEIXE; j++)
                 {
-
+                    
                     if (peixes[p].x + j > 0 && peixes[p].x + j < LARGURA)
                     {
                         // Nesta fórmula, somamos o i e o j para que o peixe venha inteiro
@@ -333,21 +350,22 @@ void desenha_tela()
             }
         }
     }
-
+    
     /*
-        Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
+    Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
         Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console e a barra de oxigenio tb
-    */
-    desenhaBarraOxigenio();
-    desenhaScore();
-    WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
-}
-
-/*
+        */
+       desenhaBarraOxigenio();
+       desenhaVida();
+       desenhaScore();
+       WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
+    }
+    
+    /*
     Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
-*/
-void acoesPlayer()
+    */
+   void acoesPlayer()
 {
     /*
         Henry: Verificação para o sprite do jogador não vazar, e alteração automática do sprite quando
@@ -377,6 +395,7 @@ void acoesPlayer()
     {
         player.y += VELOCIDADE_Y;
     }
+
 }
 
 /*
@@ -414,10 +433,11 @@ void acaoTiro()
 void iniciarPlayer()
 {
     // Enzo Capitani: aqui define as posições iniciais do player
-    player.x = 20;
-    player.y = 10;
+    player.x = 63-LARGURA_PLAYER;
+    player.y = 14;
     player.score = 0;
     player.nivelOxigenio = 1000;
+    player.vida = 5;
 }
 
 /*
@@ -454,14 +474,14 @@ void nascerPeixes()
             if (NASCE_ESQUERDA)
             {
                 // Aqui a gente faz o peixe nascer dentro da área segura de spawn, sem ser 0, se não ele nasce e morre
-                peixes[i].x = 1 + PEIXE_X;
+                peixes[i].x = 1 + LARGURA_PEIXE;
                 // Direção do peixe | Indo pra direita
                 peixes[i].dx = 1;
             }
             else
             {
                 // Mesma coisa
-                peixes[i].x = LARGURA - PEIXE_X;
+                peixes[i].x = LARGURA - LARGURA_PEIXE;
                 peixes[i].dx = -1;
             }
 
@@ -491,15 +511,40 @@ void colisaoPeixeTiro()
                 if (peixes[p].vivo)
                 {
                     if (peixes[p].x < tiros[t].x + 1 &&
-                        peixes[p].x + PEIXE_X > tiros[t].x &&
+                        peixes[p].x + LARGURA_PEIXE > tiros[t].x &&
                         peixes[p].y < tiros[t].y + 1 &&
-                        peixes[p].y + PEIXE_Y > tiros[t].y)
+                        peixes[p].y + ALTURA_PEIXE
+                     > tiros[t].y)
                     {
                         peixes[p].vivo = 0;
                         tiros[t].ativo = 0;
                     }
                 }
             }
+        }
+    }
+}
+
+
+/*
+
+    Enzo Capitani: Adicionei uma função de colisão entre o player e os peixes
+    ela verifica se o peixe e o player estão dentro um do outro,
+    se sim, o peixe morre e o player perde vida
+
+*/
+
+void colisaoPlayerPeixe(){
+    for(int i = 0; i < MAX_PEIXE; i++)
+    {
+        if(player.x + LARGURA_PLAYER > peixes[i].x
+        && player.x < peixes[i].x + LARGURA_PEIXE
+        && player.y + ALTURA_PLAYER > peixes[i].y
+        && player.y < peixes[i].y + ALTURA_PEIXE
+        ){
+            peixes[i].vivo = 0;
+            peixes[i].x = 0;
+            player.vida--;
         }
     }
 }
@@ -584,14 +629,12 @@ void update()
             }
         }
     }
+    colisaoPeixeTiro();
+    colisaoPlayerPeixe();
 }
 
 int main()
 {
-    // Enzo Capitani: aqui define as posições iniciais do player
-    player.x = 20;
-    player.y = 10;
-
     /*
         E. Emanoel: Inicia os tiros para não dar Bug
         Não pode iniciar no loop, se não ele sempre teria tiros inativos
@@ -615,7 +658,7 @@ int main()
         acoesPlayer();
         acaoTiro();
         nascerPeixes();
-        colisaoPeixeTiro();
+        
         update();
         desenha_tela();
         Sleep(90);
