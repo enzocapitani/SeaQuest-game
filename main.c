@@ -131,8 +131,8 @@ const char *PEIXE_DIREITA[TOTAL_FRAMES_PEIXE][ALTURA_PEIXE] = {
         "><>",
         "   "
     },
-    {
-        "   ",
+    {     
+        "   ", 
         "><>"
     }
 };
@@ -421,10 +421,10 @@ void desenha_tela()
                 }
             }
         }
-        else{
-            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Char.AsciiChar = 'x';
-            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
-        }
+        else if(!(peixes[p].x <= 0 || peixes[p].x >= LARGURA)){
+            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Char.AsciiChar = 'X';
+            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;             
+            }
     }
     /*
     Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
