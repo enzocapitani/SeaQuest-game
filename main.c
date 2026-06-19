@@ -5,7 +5,7 @@
 
 // IMPORTANTE! o ponto 0 do eixo Y começa no topo, não em baixo
 
-//CONSTANTES DA TELA INICIAL!
+// CONSTANTES DA TELA INICIAL!
 
 #define LARGURA_LOGO 57
 #define ALTURA_LOGO 5
@@ -13,12 +13,12 @@
 #define LOGO_Y 8
 
 const wchar_t *MRBX_QUESTLOGO[ALTURA_LOGO] = {
-    L"█   █ ████  ████  █   █     ███  █   █ █████  ████ █████", 
+    L"█   █ ████  ████  █   █     ███  █   █ █████  ████ █████",
     L"██ ██ █   █ █   █  █ █     █   █ █   █ █     █       █  ",
     L"█ █ █ ████  ████    █      █   █ █   █ ████   ███    █  ",
     L"█   █ █  █  █   █  █ █     █  █  █   █ █         █   █  ",
     L"█   █ █   █ ████  █   █     ██ █  ███  █████ ████    █  ",
-};  
+};
 
 // Constantes do buffer
 #define LARGURA 126
@@ -54,13 +54,13 @@ const char *PLAYER_ESQUERDA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
         "==%%%%%=-",
     },
     {
-        "  ()%% 1 ",
+        "  ()%% 1  ",
         "==%%%%%=\\",
     }};
 
 const char *PLAYER_DIREITA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
     {
-        " 1 %%()  ",
+        " 1 %%()   ",
         "\\=%%%%%==",
     },
     {
@@ -186,7 +186,6 @@ SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 */
 
 int relogioGlobal = 0;
-
 
 /*
     Enzo Capitani: esse desenha score ele desenha o score na pos 5 do vetor
@@ -374,16 +373,16 @@ void desenha_tela()
         só nao entendi o pq de o ultimo ter o &
         Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console e a barra de oxigenio tb
         */
-       desenhaBarraOxigenio();
-       desenhaVida();
-       desenhaScore();
-       WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
-    }
-    
-    /*
-    Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
-    */
-   void acoesPlayer()
+    desenhaBarraOxigenio();
+    desenhaVida();
+    desenhaScore();
+    WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
+}
+
+/*
+Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
+*/
+void acoesPlayer()
 {
     /*
         Henry: Verificação para o sprite do jogador não vazar, e alteração automática do sprite quando
@@ -691,7 +690,6 @@ int main()
         acoesPlayer();
         acaoTiro();
         nascerPeixes();
-        
         update();
         desenha_tela();
         Sleep(90);
