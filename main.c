@@ -93,7 +93,7 @@ PLAYER player;
 
 // Constantes do tiro
 
-#define TIRO_ICON '~'
+#define TIRO_ICON '-'
 #define MAX_TIROS 10
 #define TIRO_VEL 3
 
@@ -528,7 +528,7 @@ void colisaoPeixeTiro()
         {
             // calcula qual será a trajetória do tiro
             int x_atual = tiros[t].x;
-            int x_futuro = tiros[t].x + (tiros[t].dx * TIRO_VEL);
+            int x_futuro = (tiros[t].dx * TIRO_VEL) + tiros[t].x;
 
             // define o começo e o fim da linha do tiro
             int min_x = (tiros[t].dx == 1) ? x_atual : x_futuro;
@@ -641,6 +641,7 @@ void update()
             if (tiros[i].x <= 0 || tiros[i].x >= LARGURA)
             {
                 tiros[i].ativo = 0;
+                break;
             }
         }
     }
