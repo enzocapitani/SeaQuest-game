@@ -45,32 +45,34 @@ const wchar_t *MRBX_QUESTLOGO[ALTURA_LOGO] = {
     Enzo Capitani: Sprites iniciais do submarino, ta uma bosta
 */
 const char *PLAYER_ESQUERDA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
-    {
-        "  ()%% 1 ",
-        "==%%%%%=/",
+{
+        "  |_     ",
+        "([___]=|/",
     },
+    { 
+        "  |_     ",
+        "([___]=|-",
+    } ,
     {
-        "  ()%% 1 ",
-        "==%%%%%=-",
-    },
-    {
-        "  ()%% 1  ",
-        "==%%%%%=\\",
-    }};
+        "  |_     ",
+        "([___]=|\\",
+    }
+};
 
 const char *PLAYER_DIREITA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
     {
-        " 1 %%()   ",
-        "\\=%%%%%==",
+        "      _| ",
+        "\\|=[___])",
     },
     {
-        " 1 %%()  ",
-        "-=%%%%%==",
+        "      _| ",
+        "-|=[___])",
     },
     {
-        " 1 %%()  ",
-        "/=%%%%%==",
-    }};
+        "      _| ",
+        "/|=[___])",
+    },
+};
 
 const char *(*PLAYER_SPRITE)[ALTURA_PLAYER] = PLAYER_DIREITA;
 
