@@ -519,59 +519,89 @@ void nascerPeixes()
 {
 
     // E. Emanoel:
-    // Aqui a gente adiciona uma chance de 10% do peixe nascer a cada frame
+    // Aqui a gente adiciona uma chance de 50% do peixe nascer a cada frame
     // Evitando que nasça um monte de peixe de uma vez
-    if (rand() % 10 != 0)
+    if (rand() % 2 != 0)
     {
         return;
     }
 
     // E. Emanoel: define as características globais do cardume
 
-    // sorteia o tamanho do cardume (1 a 4 peixes)
-    int TAM_CARDUME = (rand() % 4) + 1;
+    // sorteia o tamanho do cardume (1 a 6 peixes)
+    int TAM_CARDUME = (rand() % 5) + 1;
 
     // nasce na esquerda = 1, nasce na direita = 0
     int NASCE_ESQUERDA = (rand() % 2 == 0);
 
     // altura exata pros peixes nascerem dentro do mapa
-    int BASE_ALTURA = (rand() % (ALTURA - 10)) + 5;
+    int BASE_ALTURA = (rand() % (ALTURA - 8)) + 6;
 
-    // procura os peixes mortos pra colocar no cardume
+    // se o espaço tiver livre pro peixe nascer, ele vai nascer
+    // mas antes tem um check
+    int LINHA_LIVRE = 1;
+
+    for (int p = 0; p < MAX_PEIXE; p++)
+    {
+        // so fazemos com peixes vivos
+        if (peixes[p].vivo)
+        {
+            // espaco necessario pra cada peixe
+            int ESPACO_NECESSARIO = TAM_CARDUME * ALTURA_PEIXE;
+
+            // ve se ja tem peixe naquela linha
+            if (peixes[p].y >= BASE_ALTURA && peixes[p].y <= BASE_ALTURA + ESPACO_NECESSARIO)
+            {
+                // se tiver, ele da como linha livre = 0
+                LINHA_LIVRE = 0;
+                break;
+            }
+        }
+    }
+
+    // se nao tiver, volta o loop
+    if (!LINHA_LIVRE)
+    {
+        return;
+    }
+
+    // instancia o cardume
     int PEIXES_CARDUME = 0;
 
-    for (int i = 0; i < MAX_PEIXE; i++)
+    for (int p = 0; p < MAX_PEIXE; p++)
     {
-        if (!peixes[i].vivo)
+        if (!peixes[p].vivo)
         {
             // revive os peixes
-            peixes[i].vivo = 1;
+            peixes[p].vivo = 1;
 
             // altura base pros peixes não nascerem mortos pelo limite do mapa
-            peixes[i].y = BASE_ALTURA + (PEIXES_CARDUME * ALTURA_PEIXE);
+            peixes[p].y = BASE_ALTURA + (PEIXES_CARDUME * ALTURA_PEIXE);
 
-            if (peixes[i].y > ALTURA - 5)
+            if (peixes[p].y > ALTURA - 5)
             {
-                peixes[i].y = ALTURA - 5;
+                // se os peixes nascerem abaixo da linha, eles morrem
+                peixes[p].vivo = 0;
             }
 
             if (NASCE_ESQUERDA)
             {
                 // Aqui a gente faz o peixe nascer dentro da área segura de spawn, sem ser 0, se não ele nasce e morre
-                peixes[i].x = 1 + LARGURA_PEIXE - (PEIXES_CARDUME * 2);
-                peixes[i].dx = 1;
+                peixes[p].x = 1 + LARGURA_PEIXE - (PEIXES_CARDUME * 2);
+                peixes[p].dx = 1;
             }
             else
             {
                 // Mesma coisa
-                peixes[i].x = LARGURA - LARGURA_PEIXE + (PEIXES_CARDUME * 2);
-                peixes[i].dx = -1;
+                peixes[p].x = LARGURA - LARGURA_PEIXE + (PEIXES_CARDUME * 2);
+                peixes[p].dx = -1;
             }
 
             PEIXES_CARDUME++;
 
             // se já spawnou a quantidade de peixe pro cardume, para o laço
-            if (PEIXES_CARDUME >= TAM_CARDUME) {
+            if (PEIXES_CARDUME >= TAM_CARDUME)
+            {
                 break;
             }
         }
@@ -609,6 +639,7 @@ void colisaoPeixeTiro()
                         {
                             peixes[p].vivo = 0; // peixem morto
                             tiros[t].ativo = 0; // tiro some
+                            player.score += 50;
                             // se bateu em um peixe, já era, reinicia
                             break;
                         }
@@ -706,15 +737,15 @@ void update()
         E. Emanoel: Atualiza os peixes na tela
     */
 
-    for (int i = 0; i < MAX_PEIXE; i++)
+    for (int p = 0; p < MAX_PEIXE; p++)
     {
-        if (peixes[i].vivo)
+        if (peixes[p].vivo)
         {
-            peixes[i].x += peixes[i].dx;
+            peixes[p].x += peixes[p].dx;
 
-            if (peixes[i].x <= 0 || peixes[i].x >= LARGURA)
+            if (peixes[p].x <= 0 - LARGURA_PEIXE || peixes[p].x >= LARGURA + LARGURA_PEIXE)
             {
-                peixes[i].vivo = 0;
+                peixes[p].vivo = 0;
             }
         }
     }
