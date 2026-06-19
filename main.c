@@ -119,17 +119,33 @@ TIRO tiros[MAX_TIROS];
 
 // Constantes dos peixes
 
-#define ALTURA_PEIXE 1
+#define ALTURA_PEIXE 2
 #define LARGURA_PEIXE 3
 #define MAX_PEIXE 15
-
+#define TOTAL_FRAMES_PEIXE 2 
 // E. Emanoel: Sprites do peixe
 
-const char *PEIXE_DIREITA[ALTURA_PEIXE] = {
-    "><>"};
+const char *PEIXE_DIREITA[TOTAL_FRAMES_PEIXE][ALTURA_PEIXE] = {
+    {   
+        "><>",
+        "   "
+    },
+    {
+        "   ",
+        "><>"
+    }
+};
 
-const char *PEIXE_ESQUERDA[ALTURA_PEIXE] = {
-    "<><"};
+const char *PEIXE_ESQUERDA[TOTAL_FRAMES_PEIXE][ALTURA_PEIXE] = {
+    {
+        "<><",
+        "   ",
+    },    
+    {   
+        "   ",
+        "<><"
+    }
+};
 
 /*
     E. Emanoel: Struct do peixe
@@ -379,29 +395,38 @@ void desenha_tela()
     /*
     E. Emanoel: Desenha os peixes na tela e vê se já tão fora do mapa
     */
-
-    for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
+ for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
     {
         if (peixes[p].vivo) // Verifica se o peixe está vivo | Se ele está morto, nem executa
         {
-            const char **PEIXE_SPRITE = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
+            const char *(*PEIXE_SPRITE)[ALTURA_PEIXE] = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
+            
+            int frameAtualPeixe = (relogioGlobal /VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_PEIXE;   
+            
             for (int i = 0; i < ALTURA_PEIXE; i++)
             {
                 for (int j = 0; j < LARGURA_PEIXE; j++)
                 {
+                    int posX = peixes[p].x + j;
+                    int posY = peixes[p].y + i;
+
+                    if(posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA){
+                        char caractere = (peixes[p].dx == 1) ? PEIXE_DIREITA[frameAtualPeixe][i][j] : PEIXE_ESQUERDA[frameAtualPeixe][i][j]; 
+                        
+                        int indice_peixe = (posY * LARGURA) + posX;
+                        consoleBuffer[indice_peixe].Char.AsciiChar = caractere;
+                        consoleBuffer[indice_peixe].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+                    }
 
                     if (peixes[p].x + j > 0 && peixes[p].x + j < LARGURA)
                     {
                         // Nesta fórmula, somamos o i e o j para que o peixe venha inteiro
-                        int indice_peixe = ((peixes[p].y + i) * LARGURA) + (peixes[p].x + j);
-                        consoleBuffer[indice_peixe].Char.AsciiChar = PEIXE_SPRITE[i][j];
-                        consoleBuffer[indice_peixe].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+                      
                     }
                 }
             }
         }
     }
-
     /*
     Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
