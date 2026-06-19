@@ -45,19 +45,18 @@ const wchar_t *MRBX_QUESTLOGO[ALTURA_LOGO] = {
     Enzo Capitani: Sprites iniciais do submarino, ta uma bosta
 */
 const char *PLAYER_ESQUERDA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
-{
+    {
         "  |_     ",
         "([___]=|/",
     },
-    { 
+    {
         "  |_     ",
         "([___]=|-",
-    } ,
+    },
     {
         "  |_     ",
         "([___]=|\\",
-    }
-};
+    }};
 
 const char *PLAYER_DIREITA[TOTAL_FRAMES_JOGADOR][ALTURA_PLAYER] = {
     {
@@ -188,6 +187,39 @@ SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 */
 
 int relogioGlobal = 0;
+
+int tela_atual = TELA_INICIAL;
+
+void desenhaTelaInicial()
+{
+    for (int i = 0; i < LARGURA * ALTURA; ++i)
+    {
+        consoleBuffer[i].Char.AsciiChar = ' ';
+        consoleBuffer[i].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+    }
+
+    for (int i = 0; i < ALTURA_LOGO; ++i)
+    {
+        for (int j = 0; j < LARGURA_LOGO; ++j)
+        {
+            int indice = (LOGO_Y + i) * LARGURA + (LOGO_X + j);
+            consoleBuffer[indice].Char.UnicodeChar = MRBX_QUESTLOGO[i][j];
+            consoleBuffer[indice].Attributes = FOREGROUND_BLUE;
+        }
+    }
+
+    char textoIniciar[35];
+    sprintf(textoIniciar, "PRESSIONE SPACE PARA INICIAR");
+
+    int inicio = (ALTURA_LOGO + LOGO_Y + 1) * (LARGURA) + 48;
+    for (int i = 0; textoIniciar[i] != '\0'; i++)
+    {
+        consoleBuffer[inicio + i].Char.AsciiChar = textoIniciar[i];
+        consoleBuffer[inicio + i].Attributes = FOREGROUND_BLUE;
+    }
+
+    WriteConsoleOutputW(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
+}
 
 /*
     Enzo Capitani: esse desenha score ele desenha o score na pos 5 do vetor
@@ -381,6 +413,15 @@ void desenha_tela()
     WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
 }
 
+void acoesTelaInicial()
+{
+
+    if (GetAsyncKeyState(VK_SPACE))
+    {
+        tela_atual = TELA_JOGO;
+    }
+}
+
 /*
 Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
 */
@@ -518,7 +559,7 @@ void nascerPeixes()
 
     E. Emanoel: Adicionei uma função de colisão entre os peixes e os tiros
     ela verifica se o tiro tá ativo, se o peixe tá vivo e se eles colidiram,
-    se colidiram, o peixe morre e o tiro é desativado 
+    se colidiram, o peixe morre e o tiro é desativado
     E. Emanoel: Agora a função de atualizar os tiros está aqui também
 
 */
@@ -656,7 +697,7 @@ void update()
     }
 
     /*
-        E. Emanoel: Agora a colisaoPeixeTiro() também atualiza os tiros na tela (achei melhor assim) 
+        E. Emanoel: Agora a colisaoPeixeTiro() também atualiza os tiros na tela (achei melhor assim)
     */
 
     colisaoPeixeTiro();
@@ -685,12 +726,21 @@ int main()
     // Game loop
     while (1)
     {
-        acoesPlayer();
-        acaoTiro();
-        nascerPeixes();
-        update();
-        desenha_tela();
-        Sleep(90);
+        if (tela_atual == 0)
+        {
+            desenhaTelaInicial();
+            acoesTelaInicial();
+        }
+
+        if (tela_atual == 1)
+        {
+            acoesPlayer();
+            acaoTiro();
+            nascerPeixes();
+            update();
+            desenha_tela();
+            Sleep(90);
+        }
     }
 
     return 0;
