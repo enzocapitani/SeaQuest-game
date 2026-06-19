@@ -62,7 +62,7 @@ const wchar_t *GAMEOVER[] = {
 #define VELOCIDADE_X 2
 #define VELOCIDADE_Y 1
 #define TOTAL_FRAMES_JOGADOR 3
-#define VELOCIDADE_ANIMACAO 6
+#define VELOCIDADE_ANIMACAO_PLAYER 1 // as velocidades de animação são inversamente proporcionais ao seus defines
 
 /*
     Enzo Capitani: Sprites iniciais do submarino, ta uma bosta
@@ -142,17 +142,34 @@ TIRO tiros[MAX_TIROS];
 
 // Constantes dos peixes
 
-#define ALTURA_PEIXE 1
+#define ALTURA_PEIXE 2
 #define LARGURA_PEIXE 3
 #define MAX_PEIXE 15
-
+#define TOTAL_FRAMES_PEIXE 2 
+#define VELOCIDADE_ANIMACAO_PEIXE 12 // as velocidades de animação são inversamente proporcionais ao seus defines
 // E. Emanoel: Sprites do peixe
 
-const char *PEIXE_DIREITA[ALTURA_PEIXE] = {
-    "><>"};
+const char *PEIXE_DIREITA[TOTAL_FRAMES_PEIXE][ALTURA_PEIXE] = {
+    {   
+        "><>",
+        "   "
+    },
+    {     
+        "   ", 
+        "><>"
+    }
+};
 
-const char *PEIXE_ESQUERDA[ALTURA_PEIXE] = {
-    "<><"};
+const char *PEIXE_ESQUERDA[TOTAL_FRAMES_PEIXE][ALTURA_PEIXE] = {
+    {
+        "<><",
+        "   ",
+    },    
+    {   
+        "   ",
+        "<><"
+    }
+};
 
 /*
     E. Emanoel: Struct do peixe
@@ -385,7 +402,7 @@ void desenha_tela()
     bem a formula :P, mas é isso ae
     */
 
-    int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_JOGADOR;
+    int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO_PLAYER) % TOTAL_FRAMES_JOGADOR;
 
     for (int i = 0; i < ALTURA_PLAYER; i++)
     {
@@ -433,29 +450,38 @@ void desenha_tela()
     /*
     E. Emanoel: Desenha os peixes na tela e vê se já tão fora do mapa
     */
-
-    for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
+ for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
     {
         if (peixes[p].vivo) // Verifica se o peixe está vivo | Se ele está morto, nem executa
         {
-            const char **PEIXE_SPRITE = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
+            const char *(*PEIXE_SPRITE)[ALTURA_PEIXE] = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
+            
+            int frameAtualPeixe = (relogioGlobal / VELOCIDADE_ANIMACAO_PEIXE) % TOTAL_FRAMES_PEIXE;   
+            
             for (int i = 0; i < ALTURA_PEIXE; i++)
             {
                 for (int j = 0; j < LARGURA_PEIXE; j++)
                 {
+                    int posX = peixes[p].x + j;
+                    int posY = peixes[p].y + i;
 
-                    if (peixes[p].x + j > 0 && peixes[p].x + j < LARGURA)
-                    {
-                        // Nesta fórmula, somamos o i e o j para que o peixe venha inteiro
-                        int indice_peixe = ((peixes[p].y + i) * LARGURA) + (peixes[p].x + j);
-                        consoleBuffer[indice_peixe].Char.AsciiChar = PEIXE_SPRITE[i][j];
+                    if(posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA){
+                        // Henry: verifica se o peixe está indo pra direita ou esquerda, e seu respectivo 
+                        char caractere = (peixes[p].dx == 1) ? PEIXE_DIREITA[frameAtualPeixe][i][j] : PEIXE_ESQUERDA[frameAtualPeixe][i][j]; 
+                        
+                        int indice_peixe = (posY * LARGURA) + posX;
+                        consoleBuffer[indice_peixe].Char.AsciiChar = caractere;
                         consoleBuffer[indice_peixe].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
                     }
                 }
             }
         }
+        // Henry: esse if verifica se o peixe morreu pela extremidade do mapa, faz com que o sprite de morte apenas apareça quando o peixe morre pelo jogador
+        else if(!(peixes[p].x <= 0 || peixes[p].x >= LARGURA)){
+            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Char.AsciiChar = 'X';
+            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;             
+            }
     }
-
     /*
     Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
@@ -736,11 +762,6 @@ void update()
 
     // Henry: Aqui é onde fica as mudanças relativas ao relogioGlobal
     relogioGlobal++;
-
-    if (relogioGlobal % 3 == 0)
-    {
-        player.frameAtual += (player.frameAtual + 1) % TOTAL_FRAMES_JOGADOR;
-    }
 
     // Enzo Capitani: Aqui verifica, se o player estiver na superfice, aumenta o ocigenio, se nao diminui
     if (player.y == 1)
