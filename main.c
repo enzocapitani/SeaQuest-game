@@ -417,12 +417,6 @@ void desenha_tela()
                         consoleBuffer[indice_peixe].Char.AsciiChar = caractere;
                         consoleBuffer[indice_peixe].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
                     }
-
-                    if (peixes[p].x + j > 0 && peixes[p].x + j < LARGURA)
-                    {
-                        // Nesta fórmula, somamos o i e o j para que o peixe venha inteiro
-                      
-                    }
                 }
             }
         }
@@ -708,11 +702,6 @@ void update()
 
     // Henry: Aqui é onde fica as mudanças relativas ao relogioGlobal
     relogioGlobal++;
-
-    if (relogioGlobal % 3 == 0)
-    {
-        player.frameAtual += (player.frameAtual + 1) % TOTAL_FRAMES_JOGADOR;
-    }
 
     // Enzo Capitani: Aqui verifica, se o player estiver na superfice, aumenta o ocigenio, se nao diminui
     if (player.y == 1)
