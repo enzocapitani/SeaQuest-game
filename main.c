@@ -39,7 +39,7 @@ const wchar_t *MRBX_QUESTLOGO[ALTURA_LOGO] = {
 #define VELOCIDADE_X 2
 #define VELOCIDADE_Y 1
 #define TOTAL_FRAMES_JOGADOR 3
-#define VELOCIDADE_ANIMACAO 6
+#define VELOCIDADE_ANIMACAO_PLAYER 1 // as velocidades de animação são inversamente proporcionais ao seus defines
 
 /*
     Enzo Capitani: Sprites iniciais do submarino, ta uma bosta
@@ -123,6 +123,7 @@ TIRO tiros[MAX_TIROS];
 #define LARGURA_PEIXE 3
 #define MAX_PEIXE 15
 #define TOTAL_FRAMES_PEIXE 2 
+#define VELOCIDADE_ANIMACAO_PEIXE 12 // as velocidades de animação são inversamente proporcionais ao seus defines
 // E. Emanoel: Sprites do peixe
 
 const char *PEIXE_DIREITA[TOTAL_FRAMES_PEIXE][ALTURA_PEIXE] = {
@@ -347,7 +348,7 @@ void desenha_tela()
     bem a formula :P, mas é isso ae
     */
 
-    int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_JOGADOR;
+    int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO_PLAYER) % TOTAL_FRAMES_JOGADOR;
 
     for (int i = 0; i < ALTURA_PLAYER; i++)
     {
@@ -401,7 +402,7 @@ void desenha_tela()
         {
             const char *(*PEIXE_SPRITE)[ALTURA_PEIXE] = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
             
-            int frameAtualPeixe = (relogioGlobal /VELOCIDADE_ANIMACAO) % TOTAL_FRAMES_PEIXE;   
+            int frameAtualPeixe = (relogioGlobal / VELOCIDADE_ANIMACAO_PEIXE) % TOTAL_FRAMES_PEIXE;   
             
             for (int i = 0; i < ALTURA_PEIXE; i++)
             {
@@ -419,6 +420,10 @@ void desenha_tela()
                     }
                 }
             }
+        }
+        else{
+            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Char.AsciiChar = 'x';
+            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
         }
     }
     /*
