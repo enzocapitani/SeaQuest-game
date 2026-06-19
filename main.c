@@ -5,9 +5,27 @@
 
 // IMPORTANTE! o ponto 0 do eixo Y começa no topo, não em baixo
 
+//CONSTANTES DA TELA INICIAL!
+
+#define LARGURA_LOGO 57
+#define ALTURA_LOGO 5
+#define LOGO_X 35
+#define LOGO_Y 8
+
+const wchar_t *MRBX_QUESTLOGO[ALTURA_LOGO] = {
+    L"█   █ ████  ████  █   █     ███  █   █ █████  ████ █████", 
+    L"██ ██ █   █ █   █  █ █     █   █ █   █ █     █       █  ",
+    L"█ █ █ ████  ████    █      █   █ █   █ ████   ███    █  ",
+    L"█   █ █  █  █   █  █ █     █  █  █   █ █         █   █  ",
+    L"█   █ █   █ ████  █   █     ██ █  ███  █████ ████    █  ",
+};  
+
 // Constantes do buffer
 #define LARGURA 126
 #define ALTURA 28
+
+#define TELA_INICIAL 0
+#define TELA_JOGO 1
 
 // Constantes do mapa
 #define CARACTERE_AGUA ' '
@@ -171,6 +189,39 @@ SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 
 int relogioGlobal = 0;
 
+
+int tela_atual = TELA_INICIAL;
+
+void desenhaTelaInicial()
+{
+    for (int i = 0; i < LARGURA * ALTURA; ++i)
+    {
+        consoleBuffer[i].Char.AsciiChar = ' ';
+        consoleBuffer[i].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+    }
+
+    for (int i = 0; i < ALTURA_LOGO; ++i)
+    {
+        for (int j = 0; j < LARGURA_LOGO; ++j)
+        {
+            int indice = (LOGO_Y + i) * LARGURA + (LOGO_X + j);
+            consoleBuffer[indice].Char.UnicodeChar = MRBX_QUESTLOGO[i][j];
+            consoleBuffer[indice].Attributes = FOREGROUND_BLUE;
+        }
+    }
+
+    char textoIniciar[35];
+    sprintf(textoIniciar, "PRESSIONE SPACE PARA INICIAR");
+    
+    int inicio = (ALTURA_LOGO + LOGO_Y + 1) * (LARGURA) + 48;
+    for(int i = 0; textoIniciar[i] != '\0'; i++)
+    {   
+        consoleBuffer[inicio + i].Char.AsciiChar = textoIniciar[i];
+        consoleBuffer[inicio + i].Attributes = FOREGROUND_BLUE;
+    }
+
+    WriteConsoleOutputW(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
+}
 
 /*
     Enzo Capitani: esse desenha score ele desenha o score na pos 5 do vetor
@@ -362,11 +413,20 @@ void desenha_tela()
        WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
     }
     
+    void acoesTelaInicial()
+    {
+        
+        if(GetAsyncKeyState(VK_SPACE)){
+            tela_atual = TELA_JOGO;
+        }
+
+    }
+    
     /*
     Enzo Capitani: Parte das acoes do player, movimentação e etc, precisa adicionar a ação de atirar
     */
    void acoesPlayer()
-{
+    {
     /*
         Henry: Verificação para o sprite do jogador não vazar, e alteração automática do sprite quando
         muda de direção e recomeçar o sprite
@@ -655,13 +715,19 @@ int main()
     // Game loop
     while (1)
     {
-        acoesPlayer();
-        acaoTiro();
-        nascerPeixes();
-        
-        update();
-        desenha_tela();
-        Sleep(90);
+        if(tela_atual == 0){
+           desenhaTelaInicial();
+            acoesTelaInicial();
+        }
+
+        if(tela_atual == 1){
+            acoesPlayer();
+            acaoTiro();
+            nascerPeixes();
+            update();
+            desenha_tela();
+            Sleep(90);
+        }
     }
 
     return 0;
