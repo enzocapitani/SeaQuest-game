@@ -755,7 +755,7 @@ void colisaoPlayerPeixe()
 {
     for (int i = 0; i < MAX_PEIXE; i++)
     {
-        if (player.x + LARGURA_PLAYER > peixes[i].x && player.x < peixes[i].x + LARGURA_PEIXE && player.y + ALTURA_PLAYER > peixes[i].y && player.y < peixes[i].y + ALTURA_PEIXE)
+        if (player.x + LARGURA_PLAYER > peixes[i].x && player.x < peixes[i].x + LARGURA_PEIXE && player.y + ALTURA_PLAYER > peixes[i].y && player.y < peixes[i].y + ALTURA_PEIXE && peixes[i].vivo == 1)
         {
             peixes[i].vivo = 0;
             peixes[i].x = 0;
