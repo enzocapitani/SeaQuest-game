@@ -7,20 +7,19 @@
 
 // CONSTANTES DA TELA INICIAL!
 
-#define LARGURA_LOGO 57
+#define LARGURA_LOGO 56
 #define ALTURA_LOGO 5
 #define LOGO_X 35
 #define LOGO_Y 8
 
-const wchar_t *MRBX_QUESTLOGO[ALTURA_LOGO] = {
-    L"█   █ ████  ████  █   █     ███  █   █ █████  ████ █████",
-    L"██ ██ █   █ █   █  █ █     █   █ █   █ █     █       █  ",
-    L"█ █ █ ████  ████    █      █   █ █   █ ████   ███    █  ",
-    L"█   █ █  █  █   █  █ █     █  █  █   █ █         █   █  ",
-    L"█   █ █   █ ████  █   █     ██ █  ███  █████ ████    █  ",
-};
+const char *MRBX_QUESTLOGO[ALTURA_LOGO] = {
+    " __  __ ____  ______  __   ___  _   _ _____ ____ _____ ",
+    "|  \\/  |  _ \\| __ ) \\/ /  / _ \\| | | | ____/ ___|_   _|",
+    "| |\\/| | |_) |  _ \\\\  /  | | | | | | |  _| \\___ \\ | |  ",
+    "| |  | |  _ <| |_) /  \\  | |_| | |_| | |___ ___) || |  ",
+    "|_|  |_|_| \\_\\____/_/\\_\\  \\__\\_\\\\___/|_____|____/ |_|  "};
 
-//CONSTANTES LOGO GAME OVER!
+// CONSTANTES LOGO GAME OVER!
 
 #define ALTURA_GAMEOVER 8
 #define LARGURA_GAMEOVER 100
@@ -29,18 +28,16 @@ const wchar_t *MRBX_QUESTLOGO[ALTURA_LOGO] = {
 
 const wchar_t *GAMEOVER[] = {
 
-    L" .d8888b.         d8888 888b     d888 8888888888      .d88888b.  888     888 8888888888 8888888b. ",  
-    L"d88P  Y88b       d88888 8888b   d8888 888            d88P   Y88b 888     888 888        888   Y88b", 
+    L" .d8888b.         d8888 888b     d888 8888888888      .d88888b.  888     888 8888888888 8888888b. ",
+    L"d88P  Y88b       d88888 8888b   d8888 888            d88P   Y88b 888     888 888        888   Y88b",
     L"888    888      d88P888 88888b.d88888 888            888     888 888     888 888        888    888",
     L"888            d88P 888 888Y88888P888 8888888        888     888 Y88b   d88P 8888888    888   d88P",
-    L"888  88888    d88P  888 888 Y888P 888 888            888     888  Y88b d88P  888        8888888P  ",  
+    L"888  88888    d88P  888 888 Y888P 888 888            888     888  Y88b d88P  888        8888888P  ",
     L"888    888   d88P   888 888  Y8P  888 888            888     888   Y88o88P   888        888 T88b  ",
     L"Y88b  d88P  d8888888888 888       888 888            Y88b. .d88P    Y888P    888        888  T88b ",
     L" Y88888P8  d88P     888 888       888 8888888888      Y8888888P      Y8P     8888888888 888   T88b",
-                                                                                                                                                                               
+
 };
-
-
 
 // Constantes do buffer
 #define LARGURA 126
@@ -145,31 +142,23 @@ TIRO tiros[MAX_TIROS];
 #define ALTURA_PEIXE 2
 #define LARGURA_PEIXE 3
 #define MAX_PEIXE 15
-#define TOTAL_FRAMES_PEIXE 2 
+#define TOTAL_FRAMES_PEIXE 2
 #define VELOCIDADE_ANIMACAO_PEIXE 12 // as velocidades de animação são inversamente proporcionais ao seus defines
 // E. Emanoel: Sprites do peixe
 
 const char *PEIXE_DIREITA[TOTAL_FRAMES_PEIXE][ALTURA_PEIXE] = {
-    {   
-        "><>",
-        "   "
-    },
-    {     
-        "   ", 
-        "><>"
-    }
-};
+    {"><>",
+     "   "},
+    {"   ",
+     "><>"}};
 
 const char *PEIXE_ESQUERDA[TOTAL_FRAMES_PEIXE][ALTURA_PEIXE] = {
     {
         "<><",
         "   ",
-    },    
-    {   
-        "   ",
-        "<><"
-    }
-};
+    },
+    {"   ",
+     "<><"}};
 
 /*
     E. Emanoel: Struct do peixe
@@ -186,6 +175,8 @@ typedef struct
 // Inicialização de vetores de peixes
 
 PEIXE peixes[MAX_PEIXE];
+
+void reset(void);
 
 /*
     IMPORTANTE!!!
@@ -230,7 +221,11 @@ int relogioGlobal = 0;
 
 int tela_atual = 0;
 
-void desenhaTelaGameOver(){
+/*
+    Enzo Capitani: Parte que desenha a tela do game over, mesma coisa da que desenha a tela do jogo
+*/
+void desenhaTelaGameOver()
+{
 
     for (int i = 0; i < LARGURA * ALTURA; ++i)
     {
@@ -261,13 +256,76 @@ void desenhaTelaGameOver(){
     WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
 }
 
+/*
+    Enzo Capitani: Parte que desenha a tela incial, mesma coisa da que desenha a tela do jogo
+*/
+void desenhaPeixeTela()
+{
+
+    /*
+   E. Emanoel: Desenha os peixes na tela e vê se já tão fora do mapa
+   */
+    for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
+    {
+        if (peixes[p].vivo) // Verifica se o peixe está vivo | Se ele está morto, nem executa
+        {
+            const char *(*PEIXE_SPRITE)[ALTURA_PEIXE] = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
+
+            int frameAtualPeixe = (relogioGlobal / VELOCIDADE_ANIMACAO_PEIXE) % TOTAL_FRAMES_PEIXE;
+
+            for (int i = 0; i < ALTURA_PEIXE; i++)
+            {
+                for (int j = 0; j < LARGURA_PEIXE; j++)
+                {
+                    int posX = peixes[p].x + j;
+                    int posY = peixes[p].y + i;
+
+                    if (posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA)
+                    {
+                        // Henry: verifica se o peixe está indo pra direita ou esquerda, e seu respectivo
+                        char caractere = (peixes[p].dx == 1) ? PEIXE_DIREITA[frameAtualPeixe][i][j] : PEIXE_ESQUERDA[frameAtualPeixe][i][j];
+
+                        int indice_peixe = (posY * LARGURA) + posX;
+                        consoleBuffer[indice_peixe].Char.AsciiChar = caractere;
+                        consoleBuffer[indice_peixe].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+                    }
+                }
+            }
+        }
+        // Henry: esse if verifica se o peixe morreu pela extremidade do mapa, faz com que o sprite de morte apenas apareça quando o peixe morre pelo jogador
+        else if (!(peixes[p].x <= 0 || peixes[p].x >= LARGURA))
+        {
+            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Char.AsciiChar = 'X';
+            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+        }
+    }
+}
+
+void updateTelaInicial(){
+    for (int p = 0; p < MAX_PEIXE; p++)
+    {
+        if (peixes[p].vivo)
+        {
+            peixes[p].x += peixes[p].dx;
+
+            if (peixes[p].x <= 0 - LARGURA_PEIXE || peixes[p].x >= LARGURA + LARGURA_PEIXE)
+            {
+                peixes[p].vivo = 0;
+            }
+        }
+    }
+}
+
 void desenhaTelaInicial()
 {
+
     for (int i = 0; i < LARGURA * ALTURA; ++i)
     {
         consoleBuffer[i].Char.AsciiChar = ' ';
         consoleBuffer[i].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
     }
+
+    desenhaPeixeTela();
 
     for (int i = 0; i < ALTURA_LOGO; ++i)
     {
@@ -289,7 +347,7 @@ void desenhaTelaInicial()
         consoleBuffer[inicio + i].Attributes = FOREGROUND_BLUE;
     }
 
-    WriteConsoleOutputW(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
+    WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
 }
 
 /*
@@ -309,6 +367,9 @@ void desenhaScore()
     }
 }
 
+/*
+    Enzo Capitani: Parte que desenha a vida do player na tela
+*/
 void desenhaVida()
 {
     char textoVida[15];
@@ -326,17 +387,29 @@ void desenhaBarraOxigenio()
 {
     /*
         Enzo Capitani: Aqui ele aloca a quantidade de '/' que representa o nivel de oxigenio
-        eu encontrei esse loop ai, nao sei como fiz mas levei em base um codigo do Claude
-        mas toda vez ele soma o i em 50 e verifica, se for maior que o nivel de oxigenio -> ' '
+        eu encontrei esse loop ai, toda vez ele soma o i em 50 e verifica, se for maior que o nivel de oxigenio -> ' '
         se nao -> '/'
     */
+    int frameAtual = relogioGlobal % 3;
+
+    WORD corBarraOx = FOREGROUND_RED | FOREGROUND_GREEN;
+
+    if (frameAtual == 0 && player.nivelOxigenio < 250)
+    {
+        corBarraOx = FOREGROUND_RED;
+    }
+    else if (player.nivelOxigenio < 250)
+    {
+        corBarraOx = FOREGROUND_RED | FOREGROUND_GREEN;
+    }
+
     char barras[22];
     int indiceBarras = 0;
     for (int i = 0; i <= 1000; i += 50)
     {
-        if (i < player.nivelOxigenio)
+        if (i <= player.nivelOxigenio)
         {
-            barras[indiceBarras] = '/';
+            barras[indiceBarras] = 'H';
             indiceBarras++;
             continue;
         }
@@ -348,11 +421,11 @@ void desenhaBarraOxigenio()
     char barraOxigenio[51];
     sprintf(barraOxigenio, "OXIGENIO: [%s]", barras);
 
-    int inicio = LARGURA * ALTURA - LARGURA + 40;
+    int inicio = 40;
     for (int i = 0; barraOxigenio[i] != '\0'; i++)
     {
         consoleBuffer[inicio + i].Char.AsciiChar = barraOxigenio[i];
-        consoleBuffer[inicio + i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN;
+        consoleBuffer[inicio + i].Attributes = corBarraOx;
     }
 }
 
@@ -397,9 +470,10 @@ void desenha_tela()
     desenhaMapa();
 
     /*
-    Enzo Capitani: Nesse loop, calcula a posição do player e transfere a posição dele,
-    que é baseada em um plano bidimensional, para um vetor unidimensional, ainda nao entendi muito
-    bem a formula :P, mas é isso ae
+        Enzo Capitani: Nesse loop, calcula a posição do player e transfere a posição dele,
+        que é baseada em um plano bidimensional, para um vetor unidimensional, ainda nao entendi muito
+        bem a formula :P, mas é isso ae
+        Enzo Capitani: Henry mudou e nao falou esse safado
     */
 
     int frameAtualPlayer = (relogioGlobal / VELOCIDADE_ANIMACAO_PLAYER) % TOTAL_FRAMES_JOGADOR;
@@ -447,41 +521,9 @@ void desenha_tela()
         }
     }
 
-    /*
-    E. Emanoel: Desenha os peixes na tela e vê se já tão fora do mapa
-    */
- for (int p = 0; p < MAX_PEIXE; p++) // Int P são os peixes criados
-    {
-        if (peixes[p].vivo) // Verifica se o peixe está vivo | Se ele está morto, nem executa
-        {
-            const char *(*PEIXE_SPRITE)[ALTURA_PEIXE] = (peixes[p].dx == 1) ? PEIXE_DIREITA : PEIXE_ESQUERDA; // sprite pra direção que o peixe tá indo
-            
-            int frameAtualPeixe = (relogioGlobal / VELOCIDADE_ANIMACAO_PEIXE) % TOTAL_FRAMES_PEIXE;   
-            
-            for (int i = 0; i < ALTURA_PEIXE; i++)
-            {
-                for (int j = 0; j < LARGURA_PEIXE; j++)
-                {
-                    int posX = peixes[p].x + j;
-                    int posY = peixes[p].y + i;
+    //Enzo Capitani: Criei uma função para eu conseguir desenhar os peixes na tela inicial também
+    desenhaPeixeTela();
 
-                    if(posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA){
-                        // Henry: verifica se o peixe está indo pra direita ou esquerda, e seu respectivo 
-                        char caractere = (peixes[p].dx == 1) ? PEIXE_DIREITA[frameAtualPeixe][i][j] : PEIXE_ESQUERDA[frameAtualPeixe][i][j]; 
-                        
-                        int indice_peixe = (posY * LARGURA) + posX;
-                        consoleBuffer[indice_peixe].Char.AsciiChar = caractere;
-                        consoleBuffer[indice_peixe].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
-                    }
-                }
-            }
-        }
-        // Henry: esse if verifica se o peixe morreu pela extremidade do mapa, faz com que o sprite de morte apenas apareça quando o peixe morre pelo jogador
-        else if(!(peixes[p].x <= 0 || peixes[p].x >= LARGURA)){
-            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Char.AsciiChar = 'X';
-            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;             
-            }
-    }
     /*
     Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
@@ -493,11 +535,17 @@ void desenha_tela()
     WriteConsoleOutputA(hConsole, consoleBuffer, bufferSize, bufferCoord, &consoleWriteArea);
 }
 
+/*
+    Enzo Capitani: Esse método muda a tela atual ao apertar espaço, ele recebe a tela em que
+    se quer mudar, EX: tela atual -> inicial se espaço apertado tela atual -> tela jogo
+*/
 void acoesTela(int tela)
 {
     if (GetAsyncKeyState(VK_SPACE))
     {
         tela_atual = tela;
+        reset();
+        Sleep(800);
     }
 }
 
@@ -755,7 +803,10 @@ void colisaoPlayerPeixe()
 {
     for (int i = 0; i < MAX_PEIXE; i++)
     {
-        if (player.x + LARGURA_PLAYER > peixes[i].x && player.x < peixes[i].x + LARGURA_PEIXE && player.y + ALTURA_PLAYER > peixes[i].y && player.y < peixes[i].y + ALTURA_PEIXE)
+        if (player.x + LARGURA_PLAYER > peixes[i].x &&
+            player.x < peixes[i].x + LARGURA_PEIXE &&
+            player.y + ALTURA_PLAYER > peixes[i].y &&
+            player.y < peixes[i].y + ALTURA_PEIXE)
         {
             peixes[i].vivo = 0;
             peixes[i].x = 0;
@@ -795,23 +846,23 @@ void update()
     relogioGlobal++;
 
     // Enzo Capitani: Aqui verifica, se o player estiver na superfice, aumenta o ocigenio, se nao diminui
-    if (player.y == 1)
-    {
-        player.nivelOxigenio += 20;
-    }
-    else
-    {
-        player.nivelOxigenio -= 5;
-    }
+        if (player.y == 1)
+        {
+            player.nivelOxigenio += 20;
+        }
+        else
+        {
+            player.nivelOxigenio -= 5;
+        }
 
-    if (player.nivelOxigenio < 0 || player.vida < 1)
-        tela_atual = TELA_GAMEOVER;
+        if (player.nivelOxigenio < 0 || player.vida < 1)
+            tela_atual = TELA_GAMEOVER;
 
-    if(player.nivelOxigenio > 1000) player.nivelOxigenio = 1000;
-
-   /*
-        E. Emanoel: Atualiza os peixes na tela
-    */
+        if (player.nivelOxigenio > 1000)
+            player.nivelOxigenio = 1000;
+    /*
+         E. Emanoel: Atualiza os peixes na tela
+     */
 
     for (int p = 0; p < MAX_PEIXE; p++)
     {
@@ -834,6 +885,13 @@ void update()
     colisaoPlayerPeixe();
 }
 
+void reset(void)
+{
+    iniciarPlayer();
+    iniciarTiros();
+    iniciarPeixes();
+}
+
 int main()
 {
     /*
@@ -846,9 +904,10 @@ int main()
 
     // E. Emanoel: Inicia os tiros para não dar Bug
     // Não pode iniciar no loop, se não ele sempre teria tiros inativos
-    iniciarPlayer();
-    iniciarTiros();
-    iniciarPeixes();
+    /*
+        Enzo Capitani: Joguei tudo dentro dessa funcao
+    */
+    reset();
 
     // Enzo Capitani: aqui indica a saida padrão do programa, que no caso a saída é o console
     hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -858,9 +917,11 @@ int main()
     {
         if (tela_atual == 0)
         {
+            nascerPeixes();
             desenhaTelaInicial();
+            updateTelaInicial();
             acoesTela(TELA_JOGO);
-            Sleep(200);
+            Sleep(90);
         }
 
         if (tela_atual == 1)
@@ -873,11 +934,10 @@ int main()
             Sleep(90);
         }
 
-        if(tela_atual == 2){
-            acoesTela(TELA_INICIAL);
+        if (tela_atual == 2)
+        {
             desenhaTelaGameOver();
-            iniciarPlayer();
-            Sleep(200);
+            acoesTela(TELA_INICIAL);
         }
     }
 
