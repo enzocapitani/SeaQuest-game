@@ -109,6 +109,42 @@ typedef struct
 PLAYER player;
 
 /*
+    Enzo Capitani: Criaçao das instancias da pessoa afogada
+*/
+
+#define ALTURA_PESSOA 3
+#define LARGURA_PESSOA 3
+#define QUANTIDADE_FRAMES_PESSOA 3
+#define MAX_PESSOAS 1
+#define VELOCIDADE_ANIMACAO_PESSOA 6
+
+const char *PESSOA_SPRITE[QUANTIDADE_FRAMES_PESSOA][ALTURA_PESSOA] = {
+    {
+        "_O_",
+        " |  ",
+        "/ \\"
+    },
+    {
+        "\\O/",
+        " |  ",
+        "/ \\"
+    },
+    {
+        " O ",
+        "/|\\",
+        "/ \\"
+    }
+};
+
+typedef struct
+{
+    int x, y, direcaoX;
+    int ativo;
+} PESSOA;
+
+PESSOA pessoas[MAX_PESSOAS];
+
+/*
     E. Emanoel: Criação do sistema de tiros
 */
 
@@ -244,7 +280,7 @@ void desenhaTelaGameOver()
     }
 
     char textoIniciar[35];
-    sprintf(textoIniciar, "PRESSIONE CONTROL PARA VOLTAR AO MENU");
+    sprintf(textoIniciar, "PRESSIONE SPACE PARA VOLTAR AO MENU");
 
     int inicio = (ALTURA_GAMEOVER + GAME_OVER_Y + 1) * (LARGURA) + 35;
     for (int i = 0; textoIniciar[i] != '\0'; i++)
@@ -301,6 +337,29 @@ void desenhaPeixeTela()
     }
 }
 
+void desenhaPessoa(){
+    int frameAtual = (relogioGlobal / VELOCIDADE_ANIMACAO_PESSOA) % QUANTIDADE_FRAMES_PESSOA;
+
+    for(int p = 0; p < MAX_PESSOAS; p++){
+        // Só desenha se a pessoa estiver ativa
+        if (!pessoas[p].ativo) continue; 
+
+        for(int i = 0; i < ALTURA_PESSOA; i++){
+            for(int j = 0; j < LARGURA_PESSOA; j++){
+                int posX = pessoas[p].x + j;
+                int posY = pessoas[p].y + i;
+
+                if (posX >= 0 && posX < LARGURA && posY >= 0 && posY < ALTURA) {
+                    int indice = posY * LARGURA + posX;
+
+                    consoleBuffer[indice].Char.AsciiChar = PESSOA_SPRITE[frameAtual][i][j];
+                    consoleBuffer[indice].Attributes = FOREGROUND_RED | FOREGROUND_BLUE;
+                }
+            }
+        }
+    }
+}
+
 void updateTelaInicial(){
     for (int p = 0; p < MAX_PEIXE; p++)
     {
@@ -338,7 +397,7 @@ void desenhaTelaInicial()
     }
 
     char textoIniciar[35];
-    sprintf(textoIniciar, "PRESSIONE CONTROL PARA INICIAR");
+    sprintf(textoIniciar, "PRESSIONE SPACE PARA INICIAR");
 
     int inicio = (ALTURA_LOGO + LOGO_Y + 1) * (LARGURA) + 48;
     for (int i = 0; textoIniciar[i] != '\0'; i++)
@@ -460,7 +519,7 @@ void desenhaMapa()
             continue;
         }
         consoleBuffer[i].Char.AsciiChar = CARACTERE_AGUA;
-        consoleBuffer[i].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+        consoleBuffer[i].Attributes = FOREGROUND_GREEN;
     }
 }
 
@@ -524,11 +583,13 @@ void desenha_tela()
     //Enzo Capitani: Criei uma função para eu conseguir desenhar os peixes na tela inicial também
     desenhaPeixeTela();
 
+    desenhaPessoa();
+
     /*
-        Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
+    Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
         Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console e a barra de oxigenio tb
-    */
+        */
     desenhaBarraOxigenio();
     desenhaVida();
     desenhaScore();
@@ -541,7 +602,7 @@ void desenha_tela()
 */
 void acoesTela(int tela)
 {
-    if (GetAsyncKeyState(VK_CONTROL))
+    if (GetAsyncKeyState(VK_SPACE))
     {
         tela_atual = tela;
         reset();
@@ -630,6 +691,14 @@ void iniciarPlayer()
     player.vida = 5;
 }
 
+void iniciarPessoas(){
+    for(int i = 0; i < MAX_PESSOAS; i++){
+        pessoas[i].x = 15;
+        pessoas[i].y = 10;
+        pessoas[i].ativo = 1;
+    }
+}
+
 /*
     E. Emanoel: Função pra fazer aparecer os peixes, mas, antes, inicio eles
 */
@@ -705,7 +774,7 @@ void nascerPeixes()
             // altura base pros peixes não nascerem mortos pelo limite do mapa
             peixes[p].y = BASE_ALTURA + (PEIXES_CARDUME * ALTURA_PEIXE);
 
-            if (peixes[p].y > ALTURA - 3)
+            if (peixes[p].y > ALTURA - 5)
             {
                 // se os peixes nascerem abaixo da linha, eles morrem
                 peixes[p].vivo = 0;
@@ -864,6 +933,19 @@ void update()
          E. Emanoel: Atualiza os peixes na tela
      */
 
+    for(int i = 0; i < MAX_PESSOAS; i++){
+        if(pessoas[i].ativo){
+            if(relogioGlobal % 2 == 0){
+                pessoas[i].x++;
+            }
+
+            if (pessoas[i].x <= 0 - ALTURA_PESSOA || peixes[i].x >= LARGURA + LARGURA_PESSOA)
+            {
+                pessoas[i].ativo = 0;
+            }
+        }
+    }
+
     for (int p = 0; p < MAX_PEIXE; p++)
     {
         if (peixes[p].vivo)
@@ -890,6 +972,7 @@ void reset(void)
     iniciarPlayer();
     iniciarTiros();
     iniciarPeixes();
+    iniciarPessoas();
 }
 
 int main()
