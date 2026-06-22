@@ -169,12 +169,25 @@ typedef struct
     int x, y;
     int dx;
     int vivo;
+    int vida;
     WORD cor;
 } PEIXE;
 
 // Inicialização de vetores de peixes
 
-PEIXE peixes[MAX_PEIXE];
+PEIXE peixes[MAX_PEIXE];    
+
+
+// Henry: cria entidade de morte independente
+
+#define MAX_MORTOS (MAX_PEIXE) // TODO: A cada novo inimigo a quantidade máxima dele deve ser adiconada aqui
+
+typedef struct
+{
+    int x, y, timerSumir, ativo;
+}SPRITE_MORTE;
+
+SPRITE_MORTE listaMortos[MAX_MORTOS];
 
 void reset(void);
 
@@ -220,6 +233,35 @@ SMALL_RECT consoleWriteArea = {0, 0, LARGURA - 1, ALTURA - 1};
 int relogioGlobal = 0;
 
 int tela_atual = 0;
+
+
+// Função para criar um entidade de morte
+void criarEntidadeMorta(int x, int y) {
+    for (int i = 0; i < MAX_MORTOS; i++) {
+        // Esse if reseta todos os atributos da entidade de morte reservado para aquela entidade e atriubui suas coordenadas
+        if (!listaMortos[i].ativo) { 
+            listaMortos[i].x = x;
+            listaMortos[i].y = y;
+            listaMortos[i].ativo = 1;
+            listaMortos[i].timerSumir = 8; 
+            return; 
+        }
+    }
+}
+
+// Função para atualizar o timer de cada entidade de morte
+void atualizaEntidadesMortas(){
+    for (int i = 0; i < MAX_MORTOS; i++) {
+        // Para cada entidade de morte ativa, em cada loop ela reduz o tempo
+        if (listaMortos[i].ativo) {
+            listaMortos[i].timerSumir--;
+            // Se o tempo dela acabou então liberamos o espaço
+            if (listaMortos[i].timerSumir <= 0) {
+                listaMortos[i].ativo = 0;
+            }
+        }
+    }
+}
 
 /*
     Enzo Capitani: Parte que desenha a tela do game over, mesma coisa da que desenha a tela do jogo
@@ -292,11 +334,20 @@ void desenhaPeixeTela()
                 }
             }
         }
-        // Henry: esse if verifica se o peixe morreu pela extremidade do mapa, faz com que o sprite de morte apenas apareça quando o peixe morre pelo jogador
-        else if (!(peixes[p].x <= 0 || peixes[p].x >= LARGURA))
-        {
-            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Char.AsciiChar = 'X';
-            consoleBuffer[peixes[p].y * LARGURA + peixes[p].x].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+
+    }
+}
+
+// Henry: procura as coordenadas de cada entidade de morte e desnha um X branco nelas
+void desenhaEntidadesMortas(){
+    for(int i = 0; i < MAX_MORTOS; i++){
+        // Essas variáveis protegem que o consoleBuffer estoure
+        int posY = listaMortos[i].y;
+        int posX = listaMortos[i].x;
+
+        if(listaMortos[i].ativo == 1 && !(listaMortos[i].x <= 0 || listaMortos[i].x >= LARGURA)){
+            consoleBuffer[posY * LARGURA + posX].Char.AsciiChar = 'X';
+            consoleBuffer[posY * LARGURA + posX].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
         }
     }
 }
@@ -521,9 +572,12 @@ void desenha_tela()
         }
     }
 
+    // Henry: Função para desenhar as entidades de morte
+    desenhaEntidadesMortas();
+
     //Enzo Capitani: Criei uma função para eu conseguir desenhar os peixes na tela inicial também
     desenhaPeixeTela();
-
+    
     /*
     Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
@@ -754,6 +808,7 @@ void nascerPeixes()
         {
             // revive os peixes
             peixes[p].vivo = 1;
+            peixes[p].vida = 1;
 
             // altura base pros peixes não nascerem mortos pelo limite do mapa
             peixes[p].y = BASE_ALTURA_FINAL + (PEIXES_CARDUME * ALTURA_PEIXE);
@@ -811,7 +866,7 @@ void colisaoPeixeTiro()
                         if (peixes[p].y < tiros[t].y + 1 && peixes[p].y + ALTURA_PEIXE > tiros[t].y &&
                             peixes[p].x < tiros[t].x + 1 && peixes[p].x + LARGURA_PEIXE > tiros[t].x)
                         {
-                            peixes[p].vivo = 0; // peixem morto
+                            peixes[p].vida--; // tira 1 de dano do peixe
                             tiros[t].ativo = 0; // tiro some
                             player.score += 50;
                             // se bateu em um peixe, já era, reinicia
@@ -853,9 +908,10 @@ void colisaoPlayerPeixe()
         if (player.x + LARGURA_PLAYER > peixes[i].x &&
             player.x < peixes[i].x + LARGURA_PEIXE &&
             player.y + ALTURA_PLAYER > peixes[i].y &&
-            player.y < peixes[i].y + ALTURA_PEIXE)
+            player.y < peixes[i].y + ALTURA_PEIXE &&
+            peixes[i].vivo == 1)
         {
-            peixes[i].vivo = 0;
+            peixes[i].vida = 0; // Peixe morre imediatamente quando toca no jogador
             peixes[i].x = 0;
             player.vida--;
         }
@@ -891,7 +947,7 @@ void update()
 
     // Henry: Aqui é onde fica as mudanças relativas ao relogioGlobal
     relogioGlobal++;
-
+    
     // Enzo Capitani: Aqui verifica, se o player estiver na superfice, aumenta o ocigenio, se nao diminui
     if (player.y == 1)
     {
@@ -905,12 +961,21 @@ void update()
         tela_atual = TELA_GAMEOVER;
     if (player.nivelOxigenio > 1000)
         player.nivelOxigenio = 1000;
+        
     /*
-         E. Emanoel: Atualiza os peixes na tela
-     */
-
+        E. Emanoel: Agora a colisaoPeixeTiro() também atualiza os tiros na tela (achei melhor assim)
+        Henry: movi as funções de colisão pra cima da movimentação dos peixes para o sprite de morte aparecer antes
+    */
+ 
+    colisaoPeixeTiro();
+    colisaoPlayerPeixe();
+    atualizaEntidadesMortas();
+    /*
+    E. Emanoel: Atualiza os peixes na tela
+    */
+   
     for (int p = 0; p < MAX_PEIXE; p++)
-    {
+    {   
         if (peixes[p].vivo)
         {
             peixes[p].x += peixes[p].dx;
@@ -919,15 +984,13 @@ void update()
             {
                 peixes[p].vivo = 0;
             }
+            else if(peixes[p].vida <= 0){
+                peixes[p].vivo = 0;
+                criarEntidadeMorta(peixes[p].x, peixes[p].y); 
+            }
         }
     }
 
-    /*
-        E. Emanoel: Agora a colisaoPeixeTiro() também atualiza os tiros na tela (achei melhor assim)
-    */
-
-    colisaoPeixeTiro();
-    colisaoPlayerPeixe();
 }
 
 void reset(void)
