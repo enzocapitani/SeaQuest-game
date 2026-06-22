@@ -244,7 +244,7 @@ void desenhaTelaGameOver()
     }
 
     char textoIniciar[35];
-    sprintf(textoIniciar, "PRESSIONE SPACE PARA VOLTAR AO MENU");
+    sprintf(textoIniciar, "PRESSIONE CONTROL PARA VOLTAR AO MENU");
 
     int inicio = (ALTURA_GAMEOVER + GAME_OVER_Y + 1) * (LARGURA) + 35;
     for (int i = 0; textoIniciar[i] != '\0'; i++)
@@ -338,7 +338,7 @@ void desenhaTelaInicial()
     }
 
     char textoIniciar[35];
-    sprintf(textoIniciar, "PRESSIONE SPACE PARA INICIAR");
+    sprintf(textoIniciar, "PRESSIONE CONTROL PARA INICIAR");
 
     int inicio = (ALTURA_LOGO + LOGO_Y + 1) * (LARGURA) + 48;
     for (int i = 0; textoIniciar[i] != '\0'; i++)
@@ -525,10 +525,10 @@ void desenha_tela()
     desenhaPeixeTela();
 
     /*
-    Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
+        Enzo Capitani: Aqui desenha as paradas no console, recebe todas as variaveis criadas acima
         só nao entendi o pq de o ultimo ter o &
         Enzo Capitani: Aqui coloca o desenharScore() antes de desenhar as coisas no console e a barra de oxigenio tb
-        */
+    */
     desenhaBarraOxigenio();
     desenhaVida();
     desenhaScore();
@@ -541,7 +541,7 @@ void desenha_tela()
 */
 void acoesTela(int tela)
 {
-    if (GetAsyncKeyState(VK_SPACE))
+    if (GetAsyncKeyState(VK_CONTROL))
     {
         tela_atual = tela;
         reset();
@@ -705,7 +705,7 @@ void nascerPeixes()
             // altura base pros peixes não nascerem mortos pelo limite do mapa
             peixes[p].y = BASE_ALTURA + (PEIXES_CARDUME * ALTURA_PEIXE);
 
-            if (peixes[p].y > ALTURA - 5)
+            if (peixes[p].y > ALTURA - 3)
             {
                 // se os peixes nascerem abaixo da linha, eles morrem
                 peixes[p].vivo = 0;
