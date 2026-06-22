@@ -403,7 +403,7 @@ void desenhaBarraOxigenio()
         corBarraOx = FOREGROUND_RED | FOREGROUND_GREEN;
     }
 
-    char barras[22];
+    char barras[25];
     int indiceBarras = 0;
     for (int i = 0; i <= 1000; i += 50)
     {
