@@ -645,51 +645,104 @@ void iniciarPeixes()
 void nascerPeixes()
 {
 
-    // E. Emanoel:
-    // Aqui a gente adiciona uma chance de 50% do peixe nascer a cada frame
-    // Evitando que nasça um monte de peixe de uma vez
-    if (rand() % 2 != 0)
+    // E. Emanoel: caracteristicas dos peixes
+
+    // cria peixes livres para todos os peixes que estão mortos, se tiver 0 peixes livres, ele nem tenta spawnar
+    int peixesLivres = 0;
+    for (int p = 0; p < MAX_PEIXE; p++)
+    {
+        if (!peixes[p].vivo) {
+            peixesLivres++;
+        }
+    }
+
+    if (peixesLivres == 0)
+    {
+        return;
+    }
+
+    // chance de spawn é de 25%, se não tiver peixes livres, ele nem spawna
+    if (rand() % 4 == 0)
     {
         return;
     }
 
     // E. Emanoel: define as características globais do cardume
 
-    // sorteia o tamanho do cardume (1 a 6 peixes)
-    int TAM_CARDUME = (rand() % 5) + 1;
+    // tamanho maximo do cardume é igual aos peixes livres, so que limitado ao máximo de 4 peixes e tambem pela altura do mapa
+    int tamanhoMaxCardume = peixesLivres;
 
-    // nasce na esquerda = 1, nasce na direita = 0
-    int NASCE_ESQUERDA = (rand() % 2 == 0);
-
-    // altura exata pros peixes nascerem dentro do mapa
-    int BASE_ALTURA = (rand() % (ALTURA - 8)) + 6;
-
-    // se o espaço tiver livre pro peixe nascer, ele vai nascer
-    // mas antes tem um check
-    int LINHA_LIVRE = 1;
-
-    for (int p = 0; p < MAX_PEIXE; p++)
+    if (tamanhoMaxCardume > 4)
     {
-        // so fazemos com peixes vivos
-        if (peixes[p].vivo)
-        {
-            // espaco necessario pra cada peixe
-            int ESPACO_NECESSARIO = TAM_CARDUME * ALTURA_PEIXE;
-
-            // ve se ja tem peixe naquela linha
-            if (peixes[p].y >= BASE_ALTURA && peixes[p].y <= BASE_ALTURA + ESPACO_NECESSARIO)
-            {
-                // se tiver, ele da como linha livre = 0
-                LINHA_LIVRE = 0;
-                break;
-            }
-        }
+        tamanhoMaxCardume = 4;
     }
 
-    // se nao tiver, volta o loop
-    if (!LINHA_LIVRE)
-    {
-        return;
+    // E. Emanoel: o codigo vai tentar achar um lugar limpo até 5 vezes antes de desistir
+    // de procurar uma linha limpa, garantindo que mais peixes nasçam mesmo que o mapa esteja cheio
+
+    // variaveis pra controlar as escolhas finais
+    int TAM_CARDUME_FINAL;
+    int BASE_ALTURA_FINAL;
+    int NASCE_ESQUERDA_FINAL;
+
+    int spawn_certo = 0; // sinal de que achamos um lugar
+
+    for (int tentativa = 0; tentativa < 5; tentativa++) {
+    // E. Emanoel: caracteristicas globais do cardume, maxBaseAltura e BASE_ALTURA
+
+        // sorteia o tamanho do cardume
+        int TAM_CARDUME = (rand() % tamanhoMaxCardume) + 1;
+
+        // nasce na esquerda = 1, nasce na direita = 0
+        int NASCE_ESQUERDA = (rand() % 2 == 0);
+
+        // base para os peixes nao ocuparem o lugar do placar
+        int minBaseAltura = 5;
+        // base para os peixes nao ocuparem lugar abaixo do chao
+        int maxBaseAltura = ALTURA - 5 - (TAM_CARDUME * ALTURA_PEIXE);
+
+        // trava de segurança caso o cardume for muito grande
+        if (maxBaseAltura < minBaseAltura)
+        {
+            maxBaseAltura = minBaseAltura;
+        }
+
+        // truque de jogo que garante que o peixe nasça dentro do mapa
+        int BASE_ALTURA = minBaseAltura + (rand() % (maxBaseAltura - minBaseAltura + 1));
+
+        // E. Emanoel: vamos checar se há colisão com peixes que já existem
+
+        int BLOCO_INICIO = BASE_ALTURA;
+        int BLOCO_FIM = BASE_ALTURA + (TAM_CARDUME * ALTURA_PEIXE);
+        int AREA_OCUPADA = 0;
+
+        for (int p = 0; p < MAX_PEIXE; p++) {
+            if (peixes[p].vivo) {
+                int PEIXE_INICIO = peixes[p].y;
+                int PEIXE_FIM = peixes[p].y + ALTURA_PEIXE;
+                
+                if (PEIXE_INICIO < BLOCO_FIM && PEIXE_FIM > BLOCO_INICIO)
+                {
+                    AREA_OCUPADA= 1;
+                    break;
+                }
+            }
+        }
+
+        if (!AREA_OCUPADA) {
+            TAM_CARDUME_FINAL = TAM_CARDUME;
+            BASE_ALTURA_FINAL = BASE_ALTURA;
+            NASCE_ESQUERDA_FINAL = NASCE_ESQUERDA;
+        
+            spawn_certo = 1;
+            break;
+        }
+
+        if (!spawn_certo) {
+            return;
+        }
+
+
     }
 
     // instancia o cardume
@@ -703,31 +756,25 @@ void nascerPeixes()
             peixes[p].vivo = 1;
 
             // altura base pros peixes não nascerem mortos pelo limite do mapa
-            peixes[p].y = BASE_ALTURA + (PEIXES_CARDUME * ALTURA_PEIXE);
+            peixes[p].y = BASE_ALTURA_FINAL + (PEIXES_CARDUME * ALTURA_PEIXE);
 
-            if (peixes[p].y > ALTURA - 5)
-            {
-                // se os peixes nascerem abaixo da linha, eles morrem
-                peixes[p].vivo = 0;
-            }
-
-            if (NASCE_ESQUERDA)
+            if (NASCE_ESQUERDA_FINAL)
             {
                 // Aqui a gente faz o peixe nascer dentro da área segura de spawn, sem ser 0, se não ele nasce e morre
-                peixes[p].x = 1 + LARGURA_PEIXE - (PEIXES_CARDUME * 2);
+                peixes[p].x = 1 + LARGURA_PEIXE;
                 peixes[p].dx = 1;
             }
             else
             {
                 // Mesma coisa
-                peixes[p].x = LARGURA - LARGURA_PEIXE + (PEIXES_CARDUME * 2);
+                peixes[p].x = LARGURA - LARGURA_PEIXE;
                 peixes[p].dx = -1;
             }
 
             PEIXES_CARDUME++;
 
             // se já spawnou a quantidade de peixe pro cardume, para o laço
-            if (PEIXES_CARDUME >= TAM_CARDUME)
+            if (PEIXES_CARDUME >= TAM_CARDUME_FINAL)
             {
                 break;
             }
@@ -846,20 +893,18 @@ void update()
     relogioGlobal++;
 
     // Enzo Capitani: Aqui verifica, se o player estiver na superfice, aumenta o ocigenio, se nao diminui
-        if (player.y == 1)
-        {
-            player.nivelOxigenio += 20;
-        }
-        else
-        {
-            player.nivelOxigenio -= 5;
-        }
+    if (player.y == 1)
+    {
+        player.nivelOxigenio += 20;
+    } else 
+    {
+        player.nivelOxigenio -= 5;
+    }
 
-        if (player.nivelOxigenio < 0 || player.vida < 1)
-            tela_atual = TELA_GAMEOVER;
-
-        if (player.nivelOxigenio > 1000)
-            player.nivelOxigenio = 1000;
+    if (player.nivelOxigenio < 0 || player.vida < 1)
+        tela_atual = TELA_GAMEOVER;
+    if (player.nivelOxigenio > 1000)
+        player.nivelOxigenio = 1000;
     /*
          E. Emanoel: Atualiza os peixes na tela
      */
